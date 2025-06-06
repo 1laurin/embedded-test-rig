@@ -1,0 +1,60 @@
+# Build artifacts
+build/
+!build/.gitkeep
+bin/
+!bin/.gitkeep
+*.o
+*.a
+*.so
+*.exe
+*.elf
+*.hex
+*.bin
+*.map
+
+# Temporary files
+*~
+.DS_Store
+Thumbs.db
+*.tmp
+*.temp
+*.swp
+*.swo
+
+# IDE and editor files
+.vscode/
+.idea/
+*.sublime-*
+*.code-workspace
+
+# Log files
+logs/
+!logs/.gitkeep
+*.log
+*.out
+
+# Configuration overrides
+config/local_*
+*.local.json
+
+# Test artifacts
+test_results/
+coverage/
+
+# Platform specific
+.pioenvs
+.piolibdeps
+.clang_complete
+.gcc-flags.json
+
+# Generated documentation
+docs/generated/
+*.pdf
+
+# Backup files
+*.bak
+*.backup
+
+# System files
+.git/
+*.orig
