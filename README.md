@@ -33,4 +33,4 @@ See `docs/user/installation_guide.md` for detailed setup instructions.
 
 ## License
 
-[Add your license here]
+

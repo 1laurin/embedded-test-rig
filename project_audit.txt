@@ -1,0 +1,724 @@
+# Multi-Channel Diagnostic Test Rig - Project Audit Report
+Generated: $(date)
+Project Root: $(pwd)
+
+================================================================================
+TABLE OF CONTENTS
+================================================================================
+1. DIRECTORY STRUCTURE
+2. SOURCE FILES (.cpp, .c)
+3. HEADER FILES (.h, .hpp)
+4. INCLUDE ANALYSIS
+5. MISSING FILES REPORT
+6. CMAKE FILES
+7. BUILD SCRIPTS
+8. RECOMMENDATIONS
+
+Fri Jun  6 21:45:16 EDT 2025
+Project Root: /Users/laurinbrittain/scope_rig
+
+Starting comprehensive project audit...
+================================================================================
+1. DIRECTORY STRUCTURE
+================================================================================
+Full directory tree:
+.
+./config
+./docs
+./docs/api
+./docs/design
+./docs/images
+./docs/user
+./documents
+./documents/logs
+./documents/planning
+./documents/research
+./documents/sketches
+./hardware
+./hardware/components
+./hardware/components/actuators
+./hardware/components/buttons
+./hardware/components/buzzer
+./hardware/components/display
+./hardware/components/sensors
+./hardware/datasheets
+./hardware/schematics
+./include
+./include/common
+./include/core
+./include/drivers
+./include/logging
+./include/monitoring
+./include/protocols
+./include/ui
+./include/utils
+./logs
+./logs/debug
+./logs/system
+./logs/test
+./platforms
+./platforms/common
+./platforms/nucleo_f446re
+./platforms/nucleo_f446re/hal
+./platforms/nucleo_f446re/include
+./platforms/nucleo_f446re/src
+./platforms/pico_w
+./platforms/pico_w/hal
+./platforms/pico_w/include
+./platforms/pico_w/src
+./scripts
+./scripts/build
+./scripts/deployment
+./scripts/setup
+./scripts/testing
+./scripts/utils
+./scripts/web
+./src
+./src/core
+./src/demo
+./src/drivers
+./src/logging
+./src/monitoring
+./src/protocols
+./src/system
+./src/ui
+./src/utils
+./tests
+./tests/fixtures
+./tests/integration
+./tests/mocks
+./tests/unit
+./web
+./web/assets
+./web/assets/icons
+./web/assets/images
+./web/css
+./web/js
+./web/static
+./web/templates
+
+================================================================================
+2. SOURCE FILES (.cpp, .c)
+================================================================================
+Source files by directory:
+  ./hardware/components/actuators/led_driver.cpp (       0 lines)
+    ⚠ EMPTY FILE: ./hardware/components/actuators/led_driver.cpp
+  ./hardware/components/actuators/relay_driver.cpp (       0 lines)
+    ⚠ EMPTY FILE: ./hardware/components/actuators/relay_driver.cpp
+  ./hardware/components/buttons/button_driver.cpp (       0 lines)
+    ⚠ EMPTY FILE: ./hardware/components/buttons/button_driver.cpp
+  ./hardware/components/buzzer/buzzer_driver.cpp (       0 lines)
+    ⚠ EMPTY FILE: ./hardware/components/buzzer/buzzer_driver.cpp
+  ./hardware/components/display/ili9481_driver.cpp (       0 lines)
+    ⚠ EMPTY FILE: ./hardware/components/display/ili9481_driver.cpp
+  ./hardware/components/display/touch_driver.cpp (       0 lines)
+    ⚠ EMPTY FILE: ./hardware/components/display/touch_driver.cpp
+  ./hardware/components/sensors/current_sensor.cpp (       0 lines)
+    ⚠ EMPTY FILE: ./hardware/components/sensors/current_sensor.cpp
+  ./hardware/components/sensors/temperature_sensor.cpp (       0 lines)
+    ⚠ EMPTY FILE: ./hardware/components/sensors/temperature_sensor.cpp
+  ./hardware/components/sensors/voltage_sensor.cpp (       0 lines)
+    ⚠ EMPTY FILE: ./hardware/components/sensors/voltage_sensor.cpp
+  ./platforms/nucleo_f446re/hal/adc_hal.cpp (       0 lines)
+    ⚠ EMPTY FILE: ./platforms/nucleo_f446re/hal/adc_hal.cpp
+  ./platforms/nucleo_f446re/hal/can_hal.cpp (       0 lines)
+    ⚠ EMPTY FILE: ./platforms/nucleo_f446re/hal/can_hal.cpp
+  ./platforms/nucleo_f446re/hal/dac_hal.cpp (       0 lines)
+    ⚠ EMPTY FILE: ./platforms/nucleo_f446re/hal/dac_hal.cpp
+  ./platforms/nucleo_f446re/hal/display_hal.cpp (       0 lines)
+    ⚠ EMPTY FILE: ./platforms/nucleo_f446re/hal/display_hal.cpp
+  ./platforms/nucleo_f446re/hal/gpio_hal.cpp (       0 lines)
+    ⚠ EMPTY FILE: ./platforms/nucleo_f446re/hal/gpio_hal.cpp
+  ./platforms/nucleo_f446re/hal/i2c_hal.cpp (       0 lines)
+    ⚠ EMPTY FILE: ./platforms/nucleo_f446re/hal/i2c_hal.cpp
+  ./platforms/nucleo_f446re/hal/pwm_hal.cpp (       0 lines)
+    ⚠ EMPTY FILE: ./platforms/nucleo_f446re/hal/pwm_hal.cpp
+  ./platforms/nucleo_f446re/hal/spi_hal.cpp (       0 lines)
+    ⚠ EMPTY FILE: ./platforms/nucleo_f446re/hal/spi_hal.cpp
+  ./platforms/nucleo_f446re/hal/timer_hal.cpp (       0 lines)
+    ⚠ EMPTY FILE: ./platforms/nucleo_f446re/hal/timer_hal.cpp
+  ./platforms/nucleo_f446re/hal/uart_hal.cpp (       0 lines)
+    ⚠ EMPTY FILE: ./platforms/nucleo_f446re/hal/uart_hal.cpp
+  ./platforms/nucleo_f446re/src/board_init.cpp (       0 lines)
+    ⚠ EMPTY FILE: ./platforms/nucleo_f446re/src/board_init.cpp
+  ./platforms/nucleo_f446re/src/interrupt_handlers.cpp (       0 lines)
+    ⚠ EMPTY FILE: ./platforms/nucleo_f446re/src/interrupt_handlers.cpp
+  ./platforms/nucleo_f446re/src/main.cpp (       0 lines)
+    ⚠ EMPTY FILE: ./platforms/nucleo_f446re/src/main.cpp
+  ./platforms/nucleo_f446re/src/system_init.cpp (       0 lines)
+    ⚠ EMPTY FILE: ./platforms/nucleo_f446re/src/system_init.cpp
+  ./platforms/pico_w/hal/adc_hal.cpp (       0 lines)
+    ⚠ EMPTY FILE: ./platforms/pico_w/hal/adc_hal.cpp
+  ./platforms/pico_w/hal/display_hal.cpp (     778 lines)
+  ./platforms/pico_w/hal/gpio_hal.cpp (     595 lines)
+  ./platforms/pico_w/hal/i2c_hal.cpp (       0 lines)
+    ⚠ EMPTY FILE: ./platforms/pico_w/hal/i2c_hal.cpp
+  ./platforms/pico_w/hal/pwm_hal.cpp (       0 lines)
+    ⚠ EMPTY FILE: ./platforms/pico_w/hal/pwm_hal.cpp
+  ./platforms/pico_w/hal/spi_hal.cpp (       0 lines)
+    ⚠ EMPTY FILE: ./platforms/pico_w/hal/spi_hal.cpp
+  ./platforms/pico_w/hal/timer_hal.cpp (       0 lines)
+    ⚠ EMPTY FILE: ./platforms/pico_w/hal/timer_hal.cpp
+  ./platforms/pico_w/hal/uart_hal.cpp (     595 lines)
+  ./platforms/pico_w/src/board_init.cpp (       0 lines)
+    ⚠ EMPTY FILE: ./platforms/pico_w/src/board_init.cpp
+  ./platforms/pico_w/src/main.cpp (     173 lines)
+  ./platforms/pico_w/src/web_server.cpp (       0 lines)
+    ⚠ EMPTY FILE: ./platforms/pico_w/src/web_server.cpp
+  ./platforms/pico_w/src/websocket_handler.cpp (       0 lines)
+    ⚠ EMPTY FILE: ./platforms/pico_w/src/websocket_handler.cpp
+  ./platforms/pico_w/src/wifi_manager.cpp (       0 lines)
+    ⚠ EMPTY FILE: ./platforms/pico_w/src/wifi_manager.cpp
+  ./src/core/diagnostics_engine.cpp (       0 lines)
+    ⚠ EMPTY FILE: ./src/core/diagnostics_engine.cpp
+  ./src/core/state_machine.cpp (       0 lines)
+    ⚠ EMPTY FILE: ./src/core/state_machine.cpp
+  ./src/core/system_init.cpp (     347 lines)
+  ./src/core/system_loop.cpp (     242 lines)
+  ./src/core/system_manager.cpp (       0 lines)
+    ⚠ EMPTY FILE: ./src/core/system_manager.cpp
+  ./src/core/task_scheduler.cpp (       0 lines)
+    ⚠ EMPTY FILE: ./src/core/task_scheduler.cpp
+  ./src/drivers/adc_driver.cpp (       0 lines)
+    ⚠ EMPTY FILE: ./src/drivers/adc_driver.cpp
+  ./src/drivers/dac_driver.cpp (       0 lines)
+    ⚠ EMPTY FILE: ./src/drivers/dac_driver.cpp
+  ./src/drivers/pwm_driver.cpp (       0 lines)
+    ⚠ EMPTY FILE: ./src/drivers/pwm_driver.cpp
+  ./src/drivers/timer_driver.cpp (       0 lines)
+    ⚠ EMPTY FILE: ./src/drivers/timer_driver.cpp
+  ./src/logging/data_recorder.cpp (       0 lines)
+    ⚠ EMPTY FILE: ./src/logging/data_recorder.cpp
+  ./src/logging/error_handler.cpp (       0 lines)
+    ⚠ EMPTY FILE: ./src/logging/error_handler.cpp
+  ./src/logging/logger.cpp (       0 lines)
+    ⚠ EMPTY FILE: ./src/logging/logger.cpp
+  ./src/monitoring/channel_monitor.cpp (       0 lines)
+    ⚠ EMPTY FILE: ./src/monitoring/channel_monitor.cpp
+  ./src/monitoring/health_monitor.cpp (       0 lines)
+    ⚠ EMPTY FILE: ./src/monitoring/health_monitor.cpp
+  ./src/monitoring/performance_monitor.cpp (       0 lines)
+    ⚠ EMPTY FILE: ./src/monitoring/performance_monitor.cpp
+  ./src/monitoring/thermal_monitor.cpp (       0 lines)
+    ⚠ EMPTY FILE: ./src/monitoring/thermal_monitor.cpp
+  ./src/protocols/can_protocol.cpp (       0 lines)
+    ⚠ EMPTY FILE: ./src/protocols/can_protocol.cpp
+  ./src/protocols/i2c_protocol.cpp (       0 lines)
+    ⚠ EMPTY FILE: ./src/protocols/i2c_protocol.cpp
+  ./src/protocols/modbus_handler.cpp (       0 lines)
+    ⚠ EMPTY FILE: ./src/protocols/modbus_handler.cpp
+  ./src/protocols/uart_protocol.cpp (       0 lines)
+    ⚠ EMPTY FILE: ./src/protocols/uart_protocol.cpp
+  ./src/system/safety_monitor.cpp (     540 lines)
+  ./src/ui/display_manager.cpp (       0 lines)
+    ⚠ EMPTY FILE: ./src/ui/display_manager.cpp
+  ./src/ui/input_handler.cpp (     557 lines)
+  ./src/ui/menu_system.cpp (       0 lines)
+    ⚠ EMPTY FILE: ./src/ui/menu_system.cpp
+  ./src/ui/status_indicators.cpp (       0 lines)
+    ⚠ EMPTY FILE: ./src/ui/status_indicators.cpp
+  ./src/utils/circular_buffer.cpp (       0 lines)
+    ⚠ EMPTY FILE: ./src/utils/circular_buffer.cpp
+  ./src/utils/config_parser.cpp (       0 lines)
+    ⚠ EMPTY FILE: ./src/utils/config_parser.cpp
+  ./src/utils/math_utils.cpp (       0 lines)
+    ⚠ EMPTY FILE: ./src/utils/math_utils.cpp
+  ./src/utils/string_utils.cpp (       0 lines)
+    ⚠ EMPTY FILE: ./src/utils/string_utils.cpp
+  ./tests/integration/test_full_system.cpp (       0 lines)
+    ⚠ EMPTY FILE: ./tests/integration/test_full_system.cpp
+  ./tests/integration/test_hardware_components.cpp (       0 lines)
+    ⚠ EMPTY FILE: ./tests/integration/test_hardware_components.cpp
+  ./tests/integration/test_platform_nucleo.cpp (       0 lines)
+    ⚠ EMPTY FILE: ./tests/integration/test_platform_nucleo.cpp
+  ./tests/integration/test_platform_pico.cpp (       0 lines)
+    ⚠ EMPTY FILE: ./tests/integration/test_platform_pico.cpp
+  ./tests/integration/test_web_interface.cpp (       0 lines)
+    ⚠ EMPTY FILE: ./tests/integration/test_web_interface.cpp
+  ./tests/unit/test_channel_monitor.cpp (       0 lines)
+    ⚠ EMPTY FILE: ./tests/unit/test_channel_monitor.cpp
+  ./tests/unit/test_circular_buffer.cpp (       0 lines)
+    ⚠ EMPTY FILE: ./tests/unit/test_circular_buffer.cpp
+  ./tests/unit/test_config_parser.cpp (       0 lines)
+    ⚠ EMPTY FILE: ./tests/unit/test_config_parser.cpp
+  ./tests/unit/test_diagnostics_engine.cpp (       0 lines)
+    ⚠ EMPTY FILE: ./tests/unit/test_diagnostics_engine.cpp
+  ./tests/unit/test_display_manager.cpp (       0 lines)
+    ⚠ EMPTY FILE: ./tests/unit/test_display_manager.cpp
+  ./tests/unit/test_logger.cpp (       0 lines)
+    ⚠ EMPTY FILE: ./tests/unit/test_logger.cpp
+  ./tests/unit/test_system_manager.cpp (       0 lines)
+    ⚠ EMPTY FILE: ./tests/unit/test_system_manager.cpp
+
+================================================================================
+3. HEADER FILES (.h, .hpp)
+================================================================================
+Header files by directory:
+  ./hardware/components/actuators/led_driver.h (       0 lines)
+    ⚠ EMPTY FILE: ./hardware/components/actuators/led_driver.h
+  ./hardware/components/actuators/relay_driver.h (       0 lines)
+    ⚠ EMPTY FILE: ./hardware/components/actuators/relay_driver.h
+  ./hardware/components/buttons/button_driver.h (       0 lines)
+    ⚠ EMPTY FILE: ./hardware/components/buttons/button_driver.h
+  ./hardware/components/buzzer/buzzer_driver.h (       0 lines)
+    ⚠ EMPTY FILE: ./hardware/components/buzzer/buzzer_driver.h
+  ./hardware/components/display/ili9481_driver.h (       0 lines)
+    ⚠ EMPTY FILE: ./hardware/components/display/ili9481_driver.h
+  ./hardware/components/display/touch_driver.h (       0 lines)
+    ⚠ EMPTY FILE: ./hardware/components/display/touch_driver.h
+  ./hardware/components/sensors/current_sensor.h (       0 lines)
+    ⚠ EMPTY FILE: ./hardware/components/sensors/current_sensor.h
+  ./hardware/components/sensors/temperature_sensor.h (       0 lines)
+    ⚠ EMPTY FILE: ./hardware/components/sensors/temperature_sensor.h
+  ./hardware/components/sensors/voltage_sensor.h (       0 lines)
+    ⚠ EMPTY FILE: ./hardware/components/sensors/voltage_sensor.h
+  ./include/common/constants.h (       0 lines)
+    ⚠ EMPTY FILE: ./include/common/constants.h
+  ./include/common/error_codes.h (       0 lines)
+    ⚠ EMPTY FILE: ./include/common/error_codes.h
+  ./include/common/interfaces.h (       0 lines)
+    ⚠ EMPTY FILE: ./include/common/interfaces.h
+  ./include/common/types.h (       0 lines)
+    ⚠ EMPTY FILE: ./include/common/types.h
+  ./include/core/diagnostics_engine.h (       0 lines)
+    ⚠ EMPTY FILE: ./include/core/diagnostics_engine.h
+  ./include/core/state_machine.h (       0 lines)
+    ⚠ EMPTY FILE: ./include/core/state_machine.h
+  ./include/core/system_manager.h (       0 lines)
+    ⚠ EMPTY FILE: ./include/core/system_manager.h
+  ./include/core/task_scheduler.h (       0 lines)
+    ⚠ EMPTY FILE: ./include/core/task_scheduler.h
+  ./include/drivers/adc_driver.h (       0 lines)
+    ⚠ EMPTY FILE: ./include/drivers/adc_driver.h
+  ./include/drivers/dac_driver.h (       0 lines)
+    ⚠ EMPTY FILE: ./include/drivers/dac_driver.h
+  ./include/drivers/pwm_driver.h (       0 lines)
+    ⚠ EMPTY FILE: ./include/drivers/pwm_driver.h
+  ./include/drivers/timer_driver.h (       0 lines)
+    ⚠ EMPTY FILE: ./include/drivers/timer_driver.h
+  ./include/logging/data_recorder.h (       0 lines)
+    ⚠ EMPTY FILE: ./include/logging/data_recorder.h
+  ./include/logging/error_handler.h (       0 lines)
+    ⚠ EMPTY FILE: ./include/logging/error_handler.h
+  ./include/logging/logger.h (       0 lines)
+    ⚠ EMPTY FILE: ./include/logging/logger.h
+  ./include/monitoring/channel_monitor.h (       0 lines)
+    ⚠ EMPTY FILE: ./include/monitoring/channel_monitor.h
+  ./include/monitoring/health_monitor.h (       0 lines)
+    ⚠ EMPTY FILE: ./include/monitoring/health_monitor.h
+  ./include/monitoring/performance_monitor.h (       0 lines)
+    ⚠ EMPTY FILE: ./include/monitoring/performance_monitor.h
+  ./include/monitoring/thermal_monitor.h (       0 lines)
+    ⚠ EMPTY FILE: ./include/monitoring/thermal_monitor.h
+  ./include/protocols/can_protocol.h (       0 lines)
+    ⚠ EMPTY FILE: ./include/protocols/can_protocol.h
+  ./include/protocols/i2c_protocol.h (       0 lines)
+    ⚠ EMPTY FILE: ./include/protocols/i2c_protocol.h
+  ./include/protocols/modbus_handler.h (       0 lines)
+    ⚠ EMPTY FILE: ./include/protocols/modbus_handler.h
+  ./include/protocols/uart_protocol.h (       0 lines)
+    ⚠ EMPTY FILE: ./include/protocols/uart_protocol.h
+  ./include/ui/display_manager.h (       0 lines)
+    ⚠ EMPTY FILE: ./include/ui/display_manager.h
+  ./include/ui/input_handler.h (       0 lines)
+    ⚠ EMPTY FILE: ./include/ui/input_handler.h
+  ./include/ui/menu_system.h (       0 lines)
+    ⚠ EMPTY FILE: ./include/ui/menu_system.h
+  ./include/ui/status_indicators.h (       0 lines)
+    ⚠ EMPTY FILE: ./include/ui/status_indicators.h
+  ./include/utils/circular_buffer.h (       0 lines)
+    ⚠ EMPTY FILE: ./include/utils/circular_buffer.h
+  ./include/utils/config_parser.h (       0 lines)
+    ⚠ EMPTY FILE: ./include/utils/config_parser.h
+  ./include/utils/math_utils.h (       0 lines)
+    ⚠ EMPTY FILE: ./include/utils/math_utils.h
+  ./include/utils/string_utils.h (       0 lines)
+    ⚠ EMPTY FILE: ./include/utils/string_utils.h
+  ./platforms/common/hal_interface.h (     605 lines)
+  ./platforms/common/hardware_abstraction.h (       0 lines)
+    ⚠ EMPTY FILE: ./platforms/common/hardware_abstraction.h
+  ./platforms/common/platform_types.h (       0 lines)
+    ⚠ EMPTY FILE: ./platforms/common/platform_types.h
+  ./platforms/nucleo_f446re/include/board_config.h (     457 lines)
+  ./platforms/nucleo_f446re/include/board_init.h (       0 lines)
+    ⚠ EMPTY FILE: ./platforms/nucleo_f446re/include/board_init.h
+  ./platforms/nucleo_f446re/include/interrupt_handlers.h (       0 lines)
+    ⚠ EMPTY FILE: ./platforms/nucleo_f446re/include/interrupt_handlers.h
+  ./platforms/nucleo_f446re/include/system_init.h (       0 lines)
+    ⚠ EMPTY FILE: ./platforms/nucleo_f446re/include/system_init.h
+  ./platforms/pico_w/include/board_config.h (     335 lines)
+  ./platforms/pico_w/include/board_init.h (       0 lines)
+    ⚠ EMPTY FILE: ./platforms/pico_w/include/board_init.h
+  ./platforms/pico_w/include/web_server.h (       0 lines)
+    ⚠ EMPTY FILE: ./platforms/pico_w/include/web_server.h
+  ./platforms/pico_w/include/websocket_handler.h (       0 lines)
+    ⚠ EMPTY FILE: ./platforms/pico_w/include/websocket_handler.h
+  ./platforms/pico_w/include/wifi_manager.h (       0 lines)
+    ⚠ EMPTY FILE: ./platforms/pico_w/include/wifi_manager.h
+  ./src/core/system_info.h (       0 lines)
+    ⚠ EMPTY FILE: ./src/core/system_info.h
+  ./src/core/system_init.h (      48 lines)
+  ./src/core/system_loop.h (      93 lines)
+  ./src/system/safety_monitor.h (     174 lines)
+  ./src/ui/input_handler.h (     175 lines)
+  ./tests/mocks/mock_can.h (       0 lines)
+    ⚠ EMPTY FILE: ./tests/mocks/mock_can.h
+  ./tests/mocks/mock_display.h (       0 lines)
+    ⚠ EMPTY FILE: ./tests/mocks/mock_display.h
+  ./tests/mocks/mock_hal.h (       0 lines)
+    ⚠ EMPTY FILE: ./tests/mocks/mock_hal.h
+  ./tests/mocks/mock_sensors.h (       0 lines)
+    ⚠ EMPTY FILE: ./tests/mocks/mock_sensors.h
+  ./tests/mocks/mock_wifi.h (       0 lines)
+    ⚠ EMPTY FILE: ./tests/mocks/mock_wifi.h
+
+================================================================================
+4. INCLUDE ANALYSIS
+================================================================================
+Include statements found in source files:
+
+--- ./platforms/pico_w/hal/uart_hal.cpp ---
+12:#include <stdio.h>
+13:#include <string.h>
+14:#include "../../platforms/common/hal_interface.h"
+15:#include "board_config.h"
+16:#include "pico/stdlib.h"
+17:#include "hardware/uart.h"
+18:#include "hardware/gpio.h"
+19:#include "hardware/irq.h"
+
+--- ./platforms/pico_w/hal/gpio_hal.cpp ---
+12:#include "../../platforms/common/hal_interface.h"
+13:#include "board_config.h"
+14:#include "pico/stdlib.h"
+15:#include "hardware/uart.h"
+16:#include "hardware/gpio.h"
+17:#include "hardware/irq.h"
+18:#include <stdio.h>
+19:#include <string.h>
+
+--- ./platforms/pico_w/hal/display_hal.cpp ---
+12:#include "../../platforms/common/hal_interface.h"
+13:#include "board_config.h"
+14:#include "pico/stdlib.h"
+15:#include <stdio.h>
+16:#include <string.h>
+17:#include <stdlib.h>
+
+--- ./platforms/pico_w/include/board_config.h ---
+15:#include "pico/stdlib.h"
+16:#include "hardware/adc.h"
+17:#include "hardware/uart.h"
+18:#include "hardware/spi.h"
+19:#include "hardware/i2c.h"
+20:#include "hardware/pwm.h"
+
+--- ./platforms/pico_w/src/main.cpp ---
+12:#include "core/system_init.h"
+13:#include "core/system_loop.h"
+14:#include "core/system_info.h"
+15:#include "ui/input_handler.h"
+16:#include "system/safety_monitor.h"
+17:#include "demo/hal_demo.h"
+18:#include "utils/hal_test.h"
+19:#include "board_config.h"
+20:#include <stdio.h>
+
+--- ./platforms/common/hal_interface.h ---
+16:#include <stdint.h>
+17:#include <stdbool.h>
+18:#include <stddef.h>
+
+--- ./platforms/nucleo_f446re/include/board_config.h ---
+15:#include "stm32f4xx_hal.h"
+
+--- ./src/ui/input_handler.cpp ---
+12:#include "ui/input_handler.h"
+13:#include "monitoring/diagnostics_engine.h"
+14:#include "platforms/common/hal_interface.h"
+15:#include "platforms/pico_w/include/board_config.h"
+16:#include <stdio.h>
+17:#include <string.h>
+
+--- ./src/ui/input_handler.h ---
+15:#include <stdint.h>
+16:#include <stdbool.h>
+
+--- ./src/core/system_loop.cpp ---
+12:#include "core/system_loop.h"
+13:#include "ui/input_handler.h"
+14:#include "system/safety_monitor.h"
+15:#include "monitoring/diagnostics_engine.h"
+16:#include "platforms/common/hal_interface.h"
+17:#include "platforms/pico_w/include/board_config.h"
+18:#include <stdio.h>
+
+--- ./src/core/system_init.h ---
+15:#include "platforms/common/hal_interface.h"
+
+--- ./src/core/system_loop.h ---
+15:#include <stdint.h>
+16:#include <stdbool.h>
+
+--- ./src/core/system_init.cpp ---
+12:#include "core/system_init.h"
+13:#include "platforms/pico_w/include/board_config.h"
+14:#include <stdio.h>
+15:#include <string.h>
+
+--- ./src/system/safety_monitor.cpp ---
+12:#include "system/safety_monitor.h"
+13:#include "platforms/common/hal_interface.h"
+14:#include "platforms/pico_w/include/board_config.h"
+15:#include <stdio.h>
+16:#include <string.h>
+
+--- ./src/system/safety_monitor.h ---
+15:#include <stdint.h>
+16:#include <stdbool.h>
+
+================================================================================
+5. MISSING FILES REPORT
+================================================================================
+Checking for missing included files...
+
+❌ MISSING: string.h (included by ./platforms/pico_w/hal/uart_hal.cpp)
+❌ MISSING: string.h (included by ./platforms/pico_w/hal/uart_hal.cpp)
+❌ MISSING: string.h (included by ./platforms/pico_w/hal/gpio_hal.cpp)
+❌ MISSING: string.h (included by ./platforms/pico_w/hal/gpio_hal.cpp)
+❌ MISSING: string.h (included by ./platforms/pico_w/hal/display_hal.cpp)
+❌ MISSING: string.h (included by ./platforms/pico_w/hal/display_hal.cpp)
+❌ MISSING: demo/hal_demo.h (included by ./platforms/pico_w/src/main.cpp)
+❌ MISSING: demo/hal_demo.h (included by ./platforms/pico_w/src/main.cpp)
+❌ MISSING: utils/hal_test.h (included by ./platforms/pico_w/src/main.cpp)
+❌ MISSING: utils/hal_test.h (included by ./platforms/pico_w/src/main.cpp)
+❌ MISSING: stm32f4xx_hal.h (included by ./platforms/nucleo_f446re/include/board_config.h)
+❌ MISSING: stm32f4xx_hal.h (included by ./platforms/nucleo_f446re/include/board_config.h)
+❌ MISSING: string.h (included by ./src/ui/input_handler.cpp)
+❌ MISSING: string.h (included by ./src/ui/input_handler.cpp)
+❌ MISSING: string.h (included by ./src/core/system_init.cpp)
+❌ MISSING: string.h (included by ./src/core/system_init.cpp)
+❌ MISSING: string.h (included by ./src/system/safety_monitor.cpp)
+❌ MISSING: string.h (included by ./src/system/safety_monitor.cpp)
+✅ No missing include files found
+
+================================================================================
+6. CMAKE FILES
+================================================================================
+CMake configuration files:
+  ./CMakeLists.txt (     112 lines)
+  ./platforms/nucleo_f446re/CMakeLists.txt (       0 lines)
+    ⚠ EMPTY CMAKE FILE: ./platforms/nucleo_f446re/CMakeLists.txt
+  ./platforms/pico_w/CMakeLists.txt (     164 lines)
+  ./platforms/pico_w/pico_sdk_import.cmake (       0 lines)
+    ⚠ EMPTY CMAKE FILE: ./platforms/pico_w/pico_sdk_import.cmake
+  ./tests/CMakeLists.txt (       0 lines)
+    ⚠ EMPTY CMAKE FILE: ./tests/CMakeLists.txt
+
+================================================================================
+7. BUILD SCRIPTS
+================================================================================
+Build and utility scripts:
+  ./flash.sh (      27 lines) (executable)
+  ./monitor.sh (     141 lines) (executable)
+  ./scripts/deployment/flash_nucleo.sh (       0 lines) (executable)
+    ⚠ EMPTY SCRIPT: ./scripts/deployment/flash_nucleo.sh
+  ./scripts/deployment/flash_pico.sh (     114 lines) (executable)
+  ./scripts/deployment/upload_firmware.sh (       0 lines) (executable)
+    ⚠ EMPTY SCRIPT: ./scripts/deployment/upload_firmware.sh
+  ./scripts/deployment/verify_deployment.sh (       0 lines) (executable)
+    ⚠ EMPTY SCRIPT: ./scripts/deployment/verify_deployment.sh
+  ./scripts/setup/configure_environment.sh (       0 lines) (executable)
+    ⚠ EMPTY SCRIPT: ./scripts/setup/configure_environment.sh
+  ./scripts/setup/install_dependencies.sh (       0 lines) (executable)
+    ⚠ EMPTY SCRIPT: ./scripts/setup/install_dependencies.sh
+  ./scripts/setup/setup_pico_sdk.sh (       0 lines) (executable)
+    ⚠ EMPTY SCRIPT: ./scripts/setup/setup_pico_sdk.sh
+  ./scripts/setup/setup_stm32_toolchain.sh (       0 lines) (executable)
+    ⚠ EMPTY SCRIPT: ./scripts/setup/setup_stm32_toolchain.sh
+  ./scripts/testing/benchmark.sh (       0 lines) (executable)
+    ⚠ EMPTY SCRIPT: ./scripts/testing/benchmark.sh
+  ./scripts/testing/run_integration_tests.sh (       0 lines) (executable)
+    ⚠ EMPTY SCRIPT: ./scripts/testing/run_integration_tests.sh
+  ./scripts/testing/run_unit_tests.sh (       0 lines) (executable)
+    ⚠ EMPTY SCRIPT: ./scripts/testing/run_unit_tests.sh
+  ./scripts/testing/test_hardware.sh (       0 lines) (executable)
+    ⚠ EMPTY SCRIPT: ./scripts/testing/test_hardware.sh
+  ./scripts/utils/audit_project.sh (     321 lines) (executable)
+  ./scripts/utils/code_formatter.sh (       0 lines) (executable)
+    ⚠ EMPTY SCRIPT: ./scripts/utils/code_formatter.sh
+  ./scripts/utils/create_release.sh (       0 lines) (executable)
+    ⚠ EMPTY SCRIPT: ./scripts/utils/create_release.sh
+  ./scripts/utils/debug_connection.sh (     160 lines) (executable)
+  ./scripts/utils/generate_docs.sh (       0 lines) (executable)
+    ⚠ EMPTY SCRIPT: ./scripts/utils/generate_docs.sh
+  ./scripts/utils/lint_check.sh (       0 lines) (executable)
+    ⚠ EMPTY SCRIPT: ./scripts/utils/lint_check.sh
+  ./scripts/web/launch_display_sim.sh (       0 lines) (executable)
+    ⚠ EMPTY SCRIPT: ./scripts/web/launch_display_sim.sh
+  ./scripts/web/start_web_server.sh (       0 lines) (executable)
+    ⚠ EMPTY SCRIPT: ./scripts/web/start_web_server.sh
+  ./scripts/web/test_websocket.sh (       0 lines) (executable)
+    ⚠ EMPTY SCRIPT: ./scripts/web/test_websocket.sh
+
+================================================================================
+8. RECOMMENDATIONS
+================================================================================
+Recommendations based on analysis:
+
+1. EMPTY FILES - These files need implementation:
+   - ./platforms/pico_w/hal/timer_hal.cpp
+   - ./platforms/pico_w/hal/pwm_hal.cpp
+   - ./platforms/pico_w/hal/i2c_hal.cpp
+   - ./platforms/pico_w/hal/adc_hal.cpp
+   - ./platforms/pico_w/hal/spi_hal.cpp
+   - ./platforms/pico_w/include/wifi_manager.h
+   - ./platforms/pico_w/include/board_init.h
+   - ./platforms/pico_w/include/websocket_handler.h
+   - ./platforms/pico_w/include/web_server.h
+   - ./platforms/pico_w/src/websocket_handler.cpp
+   - ./platforms/pico_w/src/wifi_manager.cpp
+   - ./platforms/pico_w/src/board_init.cpp
+   - ./platforms/pico_w/src/web_server.cpp
+   - ./platforms/common/platform_types.h
+   - ./platforms/common/hardware_abstraction.h
+   - ./platforms/nucleo_f446re/hal/uart_hal.cpp
+   - ./platforms/nucleo_f446re/hal/timer_hal.cpp
+   - ./platforms/nucleo_f446re/hal/can_hal.cpp
+   - ./platforms/nucleo_f446re/hal/gpio_hal.cpp
+   - ./platforms/nucleo_f446re/hal/pwm_hal.cpp
+   - ./platforms/nucleo_f446re/hal/display_hal.cpp
+   - ./platforms/nucleo_f446re/hal/i2c_hal.cpp
+   - ./platforms/nucleo_f446re/hal/dac_hal.cpp
+   - ./platforms/nucleo_f446re/hal/adc_hal.cpp
+   - ./platforms/nucleo_f446re/hal/spi_hal.cpp
+   - ./platforms/nucleo_f446re/include/board_init.h
+   - ./platforms/nucleo_f446re/include/system_init.h
+   - ./platforms/nucleo_f446re/include/interrupt_handlers.h
+   - ./platforms/nucleo_f446re/src/interrupt_handlers.cpp
+   - ./platforms/nucleo_f446re/src/system_init.cpp
+   - ./platforms/nucleo_f446re/src/board_init.cpp
+   - ./platforms/nucleo_f446re/src/main.cpp
+   - ./hardware/components/sensors/temperature_sensor.h
+   - ./hardware/components/sensors/current_sensor.h
+   - ./hardware/components/sensors/temperature_sensor.cpp
+   - ./hardware/components/sensors/current_sensor.cpp
+   - ./hardware/components/sensors/voltage_sensor.h
+   - ./hardware/components/sensors/voltage_sensor.cpp
+   - ./hardware/components/buttons/button_driver.h
+   - ./hardware/components/buttons/button_driver.cpp
+   - ./hardware/components/actuators/relay_driver.cpp
+   - ./hardware/components/actuators/relay_driver.h
+   - ./hardware/components/actuators/led_driver.h
+   - ./hardware/components/actuators/led_driver.cpp
+   - ./hardware/components/display/ili9481_driver.cpp
+   - ./hardware/components/display/touch_driver.h
+   - ./hardware/components/display/ili9481_driver.h
+   - ./hardware/components/display/touch_driver.cpp
+   - ./hardware/components/buzzer/buzzer_driver.cpp
+   - ./hardware/components/buzzer/buzzer_driver.h
+   - ./include/ui/status_indicators.h
+   - ./include/ui/display_manager.h
+   - ./include/ui/input_handler.h
+   - ./include/ui/menu_system.h
+   - ./include/drivers/timer_driver.h
+   - ./include/drivers/adc_driver.h
+   - ./include/drivers/dac_driver.h
+   - ./include/drivers/pwm_driver.h
+   - ./include/core/task_scheduler.h
+   - ./include/core/state_machine.h
+   - ./include/core/diagnostics_engine.h
+   - ./include/core/system_manager.h
+   - ./include/utils/string_utils.h
+   - ./include/utils/circular_buffer.h
+   - ./include/utils/config_parser.h
+   - ./include/utils/math_utils.h
+   - ./include/common/interfaces.h
+   - ./include/common/types.h
+   - ./include/common/constants.h
+   - ./include/common/error_codes.h
+   - ./include/monitoring/thermal_monitor.h
+   - ./include/monitoring/performance_monitor.h
+   - ./include/monitoring/health_monitor.h
+   - ./include/monitoring/channel_monitor.h
+   - ./include/protocols/can_protocol.h
+   - ./include/protocols/modbus_handler.h
+   - ./include/protocols/uart_protocol.h
+   - ./include/protocols/i2c_protocol.h
+   - ./include/logging/data_recorder.h
+   - ./include/logging/error_handler.h
+   - ./include/logging/logger.h
+   - ./tests/mocks/mock_sensors.h
+   - ./tests/mocks/mock_can.h
+   - ./tests/mocks/mock_wifi.h
+   - ./tests/mocks/mock_hal.h
+   - ./tests/mocks/mock_display.h
+   - ./tests/unit/test_circular_buffer.cpp
+   - ./tests/unit/test_channel_monitor.cpp
+   - ./tests/unit/test_system_manager.cpp
+   - ./tests/unit/test_display_manager.cpp
+   - ./tests/unit/test_diagnostics_engine.cpp
+   - ./tests/unit/test_logger.cpp
+   - ./tests/unit/test_config_parser.cpp
+   - ./tests/integration/test_full_system.cpp
+   - ./tests/integration/test_platform_pico.cpp
+   - ./tests/integration/test_platform_nucleo.cpp
+   - ./tests/integration/test_hardware_components.cpp
+   - ./tests/integration/test_web_interface.cpp
+   - ./src/ui/menu_system.cpp
+   - ./src/ui/display_manager.cpp
+   - ./src/ui/status_indicators.cpp
+   - ./src/drivers/adc_driver.cpp
+   - ./src/drivers/pwm_driver.cpp
+   - ./src/drivers/dac_driver.cpp
+   - ./src/drivers/timer_driver.cpp
+   - ./src/core/system_manager.cpp
+   - ./src/core/state_machine.cpp
+   - ./src/core/task_scheduler.cpp
+   - ./src/core/system_info.h
+   - ./src/core/diagnostics_engine.cpp
+   - ./src/utils/config_parser.cpp
+   - ./src/utils/string_utils.cpp
+   - ./src/utils/circular_buffer.cpp
+   - ./src/utils/math_utils.cpp
+   - ./src/monitoring/performance_monitor.cpp
+   - ./src/monitoring/health_monitor.cpp
+   - ./src/monitoring/channel_monitor.cpp
+   - ./src/monitoring/thermal_monitor.cpp
+   - ./src/protocols/i2c_protocol.cpp
+   - ./src/protocols/can_protocol.cpp
+   - ./src/protocols/uart_protocol.cpp
+   - ./src/protocols/modbus_handler.cpp
+   - ./src/logging/error_handler.cpp
+   - ./src/logging/data_recorder.cpp
+   - ./src/logging/logger.cpp
+
+📝 Found empty files that need implementation
+2. INCLUDE PATH CONSISTENCY:
+   - Consider standardizing all includes to use relative paths from project root
+   - Move all headers to include/ directory for consistency
+
+3. MULTI-PLATFORM STRUCTURE:
+   - Ensure HAL interfaces are consistent between platforms
+   - Verify common code doesn't contain platform-specific includes
+
+4. BUILD SYSTEM:
+   - Verify CMakeLists.txt files have correct include paths
+   - Ensure all source files are included in CMake GLOB patterns
+
+✅ Audit complete! Check /Users/laurinbrittain/scope_rig/project_audit.txt for full details
+
+=================================================================================
+AUDIT COMPLETE
+=================================================================================
+Full report saved to: /Users/laurinbrittain/scope_rig/project_audit.txt
+
+Quick summary:
+  📁 C++ source files:       78
+  📁 Header files:       62
+  ⚠️  Empty files:      125
+
+Next steps:
+1. Review the missing files list in /Users/laurinbrittain/scope_rig/project_audit.txt
+2. Create or move files to fix include issues
+3. Implement empty files or remove unused includes
