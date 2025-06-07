@@ -1,14 +1,15 @@
 /**
  * @file system_info.cpp
- * @brief System information display
+ * @brief System information display implementation
  */
 
+#include "system_info.h"
 #include <stdio.h>
 
 void display_system_info(void) {
-    printf("\n=== Multi-Channel Diagnostic Test Rig ===\n");
-    printf("Platform: Raspberry Pi Pico W\n");
+    printf("\n=== System Information ===\n");
+    printf("Multi-Channel Diagnostic Test Rig - Pico W\n");
     printf("Version: 1.0.0\n");
-    printf("Build: Minimal Test Build\n");
-    printf("==========================================\n\n");
+    printf("Build Date: %s %s\n", __DATE__, __TIME__);
+    printf("==========================\n\n");
 }

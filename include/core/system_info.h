@@ -1,5 +1,9 @@
 /**
+ * @file system_info.h
  * @brief System information display interface
+ *
+ * @author Multi-Channel Diagnostic Test Rig Team
+ * @date 2025
  */
 
 #ifndef SYSTEM_INFO_H

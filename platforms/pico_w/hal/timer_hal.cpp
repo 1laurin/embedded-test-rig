@@ -1,8 +1,13 @@
-#include "../../platforms/common/hal_interface.h"
+/**
+ * @file timer_hal.cpp
+ * @brief Timer HAL stub for Pico W
+ */
+
+#include "hal_interface.h"
 #include <stdio.h>
 
 hal_status_t hal_timer_init(uint8_t timer_id, const timer_config_t *config) {
-    printf("[TIMER] Timer%d init (stub)\n", timer_id);
+    printf("[TIMER] Timer%d init stub\n", timer_id);
     return HAL_OK;
 }
 

@@ -4,8 +4,9 @@
  */
 
 #include "hal_demo.h"
-#include "../../platforms/common/hal_interface.h"
+#include "hal_interface.h"
 #include <stdio.h>
+#include <string.h>  // Added for strlen
 
 void run_hal_demo(void) {
     printf("[DEMO] Starting HAL demonstration...\n");

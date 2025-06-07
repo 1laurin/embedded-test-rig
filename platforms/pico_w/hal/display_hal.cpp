@@ -9,7 +9,7 @@
  * @date 2025
  */
 
-#include "../../platforms/common/hal_interface.h"
+#include "hal_interface.h"
 #include "board_config.h"
 #include "pico/stdlib.h"
 #include <stdio.h>
@@ -43,7 +43,7 @@ typedef struct
 // PRIVATE VARIABLES
 // =============================================================================
 
-static display_context_t display_ctx = {0};
+static display_context_t display_ctx = {};
 
 // =============================================================================
 // PRIVATE FUNCTION DECLARATIONS
@@ -120,7 +120,7 @@ hal_status_t hal_display_clear(uint32_t color)
         return HAL_ERROR;
     }
 
-    uint32_t rgb565_color = rgb888_to_rgb565(color);
+    uint32_t rgb565_color = rgb888_to_rgb565(color); (void)rgb565_color;
     display_ctx.bg_color = rgb565_color;
 
     char details[64];
@@ -180,7 +180,7 @@ hal_status_t hal_display_set_pixel(uint16_t x, uint16_t y, uint32_t color)
         return HAL_INVALID_PARAM;
     }
 
-    uint32_t rgb565_color = rgb888_to_rgb565(color);
+    uint32_t rgb565_color = rgb888_to_rgb565(color); (void)rgb565_color;
 
     // Store last pixel operation
     display_ctx.last_pixel_x = x;
@@ -224,7 +224,7 @@ hal_status_t hal_display_draw_rect(uint16_t x, uint16_t y, uint16_t width, uint1
         return HAL_INVALID_PARAM;
     }
 
-    uint32_t rgb565_color = rgb888_to_rgb565(color);
+    uint32_t rgb565_color = rgb888_to_rgb565(color); (void)rgb565_color;
 
     char details[128];
     snprintf(details, sizeof(details),
@@ -261,8 +261,8 @@ hal_status_t hal_display_draw_text(uint16_t x, uint16_t y, const char *text, uin
     strncpy(safe_text, text, sizeof(safe_text) - 1);
     safe_text[sizeof(safe_text) - 1] = '\0';
 
-    uint32_t rgb565_color = rgb888_to_rgb565(color);
-    uint32_t rgb565_bg = rgb888_to_rgb565(bg_color);
+    uint32_t rgb565_color = rgb888_to_rgb565(color); (void)rgb565_color;
+    uint32_t rgb565_bg = rgb888_to_rgb565(bg_color); (void)rgb565_bg;
 
     char details[256];
     snprintf(details, sizeof(details),

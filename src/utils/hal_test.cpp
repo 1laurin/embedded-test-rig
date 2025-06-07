@@ -4,7 +4,7 @@
  */
 
 #include "hal_test.h"
-#include "../../platforms/common/hal_interface.h"
+#include "hal_interface.h"
 #include <stdio.h>
 
 bool test_hal_subsystems(void) {

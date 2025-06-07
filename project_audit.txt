@@ -14,7 +14,7 @@ TABLE OF CONTENTS
 7. BUILD SCRIPTS
 8. RECOMMENDATIONS
 
-Fri Jun  6 21:45:16 EDT 2025
+Sat Jun  7 18:22:27 EDT 2025
 Project Root: /Users/laurinbrittain/scope_rig
 
 Starting comprehensive project audit...
@@ -147,22 +147,18 @@ Source files by directory:
     ⚠ EMPTY FILE: ./platforms/nucleo_f446re/src/main.cpp
   ./platforms/nucleo_f446re/src/system_init.cpp (       0 lines)
     ⚠ EMPTY FILE: ./platforms/nucleo_f446re/src/system_init.cpp
-  ./platforms/pico_w/hal/adc_hal.cpp (       0 lines)
-    ⚠ EMPTY FILE: ./platforms/pico_w/hal/adc_hal.cpp
-  ./platforms/pico_w/hal/display_hal.cpp (     778 lines)
-  ./platforms/pico_w/hal/gpio_hal.cpp (     595 lines)
-  ./platforms/pico_w/hal/i2c_hal.cpp (       0 lines)
-    ⚠ EMPTY FILE: ./platforms/pico_w/hal/i2c_hal.cpp
-  ./platforms/pico_w/hal/pwm_hal.cpp (       0 lines)
-    ⚠ EMPTY FILE: ./platforms/pico_w/hal/pwm_hal.cpp
-  ./platforms/pico_w/hal/spi_hal.cpp (       0 lines)
-    ⚠ EMPTY FILE: ./platforms/pico_w/hal/spi_hal.cpp
-  ./platforms/pico_w/hal/timer_hal.cpp (       0 lines)
-    ⚠ EMPTY FILE: ./platforms/pico_w/hal/timer_hal.cpp
-  ./platforms/pico_w/hal/uart_hal.cpp (     595 lines)
+  ./platforms/pico_w/hal/adc_hal.cpp (      80 lines)
+  ./platforms/pico_w/hal/display_hal.cpp (     457 lines)
+  ./platforms/pico_w/hal/gpio_hal.cpp (     140 lines)
+  ./platforms/pico_w/hal/hal_main.cpp (     100 lines)
+  ./platforms/pico_w/hal/i2c_hal.cpp (      27 lines)
+  ./platforms/pico_w/hal/pwm_hal.cpp (      23 lines)
+  ./platforms/pico_w/hal/spi_hal.cpp (      19 lines)
+  ./platforms/pico_w/hal/timer_hal.cpp (      28 lines)
+  ./platforms/pico_w/hal/uart_hal.cpp (     145 lines)
   ./platforms/pico_w/src/board_init.cpp (       0 lines)
     ⚠ EMPTY FILE: ./platforms/pico_w/src/board_init.cpp
-  ./platforms/pico_w/src/main.cpp (     173 lines)
+  ./platforms/pico_w/src/main.cpp (     122 lines)
   ./platforms/pico_w/src/web_server.cpp (       0 lines)
     ⚠ EMPTY FILE: ./platforms/pico_w/src/web_server.cpp
   ./platforms/pico_w/src/websocket_handler.cpp (       0 lines)
@@ -173,12 +169,14 @@ Source files by directory:
     ⚠ EMPTY FILE: ./src/core/diagnostics_engine.cpp
   ./src/core/state_machine.cpp (       0 lines)
     ⚠ EMPTY FILE: ./src/core/state_machine.cpp
+  ./src/core/system_info.cpp (      17 lines)
   ./src/core/system_init.cpp (     347 lines)
   ./src/core/system_loop.cpp (     242 lines)
   ./src/core/system_manager.cpp (       0 lines)
     ⚠ EMPTY FILE: ./src/core/system_manager.cpp
   ./src/core/task_scheduler.cpp (       0 lines)
     ⚠ EMPTY FILE: ./src/core/task_scheduler.cpp
+  ./src/demo/hal_demo.cpp (      72 lines)
   ./src/drivers/adc_driver.cpp (       0 lines)
     ⚠ EMPTY FILE: ./src/drivers/adc_driver.cpp
   ./src/drivers/dac_driver.cpp (       0 lines)
@@ -195,6 +193,7 @@ Source files by directory:
     ⚠ EMPTY FILE: ./src/logging/logger.cpp
   ./src/monitoring/channel_monitor.cpp (       0 lines)
     ⚠ EMPTY FILE: ./src/monitoring/channel_monitor.cpp
+  ./src/monitoring/diagnostics_engine.cpp (      27 lines)
   ./src/monitoring/health_monitor.cpp (       0 lines)
     ⚠ EMPTY FILE: ./src/monitoring/health_monitor.cpp
   ./src/monitoring/performance_monitor.cpp (       0 lines)
@@ -221,6 +220,7 @@ Source files by directory:
     ⚠ EMPTY FILE: ./src/utils/circular_buffer.cpp
   ./src/utils/config_parser.cpp (       0 lines)
     ⚠ EMPTY FILE: ./src/utils/config_parser.cpp
+  ./src/utils/hal_test.cpp (     129 lines)
   ./src/utils/math_utils.cpp (       0 lines)
     ⚠ EMPTY FILE: ./src/utils/math_utils.cpp
   ./src/utils/string_utils.cpp (       0 lines)
@@ -284,6 +284,9 @@ Header files by directory:
     ⚠ EMPTY FILE: ./include/core/diagnostics_engine.h
   ./include/core/state_machine.h (       0 lines)
     ⚠ EMPTY FILE: ./include/core/state_machine.h
+  ./include/core/system_info.h (      22 lines)
+  ./include/core/system_init.h (      43 lines)
+  ./include/core/system_loop.h (       6 lines)
   ./include/core/system_manager.h (       0 lines)
     ⚠ EMPTY FILE: ./include/core/system_manager.h
   ./include/core/task_scheduler.h (       0 lines)
@@ -296,6 +299,7 @@ Header files by directory:
     ⚠ EMPTY FILE: ./include/drivers/pwm_driver.h
   ./include/drivers/timer_driver.h (       0 lines)
     ⚠ EMPTY FILE: ./include/drivers/timer_driver.h
+  ./include/hal_interface.h (     605 lines)
   ./include/logging/data_recorder.h (       0 lines)
     ⚠ EMPTY FILE: ./include/logging/data_recorder.h
   ./include/logging/error_handler.h (       0 lines)
@@ -304,6 +308,7 @@ Header files by directory:
     ⚠ EMPTY FILE: ./include/logging/logger.h
   ./include/monitoring/channel_monitor.h (       0 lines)
     ⚠ EMPTY FILE: ./include/monitoring/channel_monitor.h
+  ./include/monitoring/diagnostics_engine.h (      22 lines)
   ./include/monitoring/health_monitor.h (       0 lines)
     ⚠ EMPTY FILE: ./include/monitoring/health_monitor.h
   ./include/monitoring/performance_monitor.h (       0 lines)
@@ -320,8 +325,7 @@ Header files by directory:
     ⚠ EMPTY FILE: ./include/protocols/uart_protocol.h
   ./include/ui/display_manager.h (       0 lines)
     ⚠ EMPTY FILE: ./include/ui/display_manager.h
-  ./include/ui/input_handler.h (       0 lines)
-    ⚠ EMPTY FILE: ./include/ui/input_handler.h
+  ./include/ui/input_handler.h (      11 lines)
   ./include/ui/menu_system.h (       0 lines)
     ⚠ EMPTY FILE: ./include/ui/menu_system.h
   ./include/ui/status_indicators.h (       0 lines)
@@ -357,10 +361,12 @@ Header files by directory:
     ⚠ EMPTY FILE: ./platforms/pico_w/include/wifi_manager.h
   ./src/core/system_info.h (       0 lines)
     ⚠ EMPTY FILE: ./src/core/system_info.h
-  ./src/core/system_init.h (      48 lines)
+  ./src/core/system_init.h (      43 lines)
   ./src/core/system_loop.h (      93 lines)
+  ./src/demo/hal_demo.h (      57 lines)
   ./src/system/safety_monitor.h (     174 lines)
   ./src/ui/input_handler.h (     175 lines)
+  ./src/utils/hal_test.h (      81 lines)
   ./tests/mocks/mock_can.h (       0 lines)
     ⚠ EMPTY FILE: ./tests/mocks/mock_can.h
   ./tests/mocks/mock_display.h (       0 lines)
@@ -378,24 +384,36 @@ Header files by directory:
 Include statements found in source files:
 
 --- ./platforms/pico_w/hal/uart_hal.cpp ---
-12:#include <stdio.h>
-13:#include <string.h>
-14:#include "../../platforms/common/hal_interface.h"
-15:#include "board_config.h"
-16:#include "pico/stdlib.h"
-17:#include "hardware/uart.h"
-18:#include "hardware/gpio.h"
-19:#include "hardware/irq.h"
+6:#include "../../platforms/common/hal_interface.h"
+7:#include "board_config.h"
+8:#include "pico/stdlib.h"
+9:#include "hardware/uart.h"
+10:#include "hardware/gpio.h"
+11:#include <stdio.h>
+12:#include <string.h>
+
+--- ./platforms/pico_w/hal/timer_hal.cpp ---
+1:#include "../../platforms/common/hal_interface.h"
+2:#include <stdio.h>
 
 --- ./platforms/pico_w/hal/gpio_hal.cpp ---
+6:#include "../../platforms/common/hal_interface.h"
+7:#include "board_config.h"
+8:#include "pico/stdlib.h"
+9:#include "hardware/gpio.h"
+10:#include <stdio.h>
+
+--- ./platforms/pico_w/hal/hal_main.cpp ---
 12:#include "../../platforms/common/hal_interface.h"
 13:#include "board_config.h"
 14:#include "pico/stdlib.h"
-15:#include "hardware/uart.h"
-16:#include "hardware/gpio.h"
-17:#include "hardware/irq.h"
-18:#include <stdio.h>
-19:#include <string.h>
+15:#include "hardware/clocks.h"
+16:#include "hardware/watchdog.h"
+17:#include <stdio.h>
+
+--- ./platforms/pico_w/hal/pwm_hal.cpp ---
+1:#include "../../platforms/common/hal_interface.h"
+2:#include <stdio.h>
 
 --- ./platforms/pico_w/hal/display_hal.cpp ---
 12:#include "../../platforms/common/hal_interface.h"
@@ -404,6 +422,21 @@ Include statements found in source files:
 15:#include <stdio.h>
 16:#include <string.h>
 17:#include <stdlib.h>
+
+--- ./platforms/pico_w/hal/i2c_hal.cpp ---
+1:#include "../../platforms/common/hal_interface.h"
+2:#include <stdio.h>
+
+--- ./platforms/pico_w/hal/adc_hal.cpp ---
+6:#include "../../platforms/common/hal_interface.h"
+7:#include "board_config.h"
+8:#include "pico/stdlib.h"
+9:#include "hardware/adc.h"
+10:#include <stdio.h>
+
+--- ./platforms/pico_w/hal/spi_hal.cpp ---
+1:#include "../../platforms/common/hal_interface.h"
+2:#include <stdio.h>
 
 --- ./platforms/pico_w/include/board_config.h ---
 15:#include "pico/stdlib.h"
@@ -414,15 +447,15 @@ Include statements found in source files:
 20:#include "hardware/pwm.h"
 
 --- ./platforms/pico_w/src/main.cpp ---
-12:#include "core/system_init.h"
-13:#include "core/system_loop.h"
-14:#include "core/system_info.h"
-15:#include "ui/input_handler.h"
-16:#include "system/safety_monitor.h"
-17:#include "demo/hal_demo.h"
-18:#include "utils/hal_test.h"
-19:#include "board_config.h"
-20:#include <stdio.h>
+6:#include "system_init.h"
+7:#include "system_loop.h"
+8:#include "system_info.h"
+9:#include "input_handler.h"
+10:#include "safety_monitor.h"
+11:#include "hal_demo.h"
+12:#include "hal_test.h"
+13:#include "board_config.h"
+14:#include <stdio.h>
 
 --- ./platforms/common/hal_interface.h ---
 16:#include <stdint.h>
@@ -431,6 +464,26 @@ Include statements found in source files:
 
 --- ./platforms/nucleo_f446re/include/board_config.h ---
 15:#include "stm32f4xx_hal.h"
+
+--- ./include/ui/input_handler.h ---
+3:#include <stdbool.h>
+4:#include <stdint.h>
+
+--- ./include/core/system_init.h ---
+9:#include "hal_interface.h"
+
+--- ./include/hal_interface.h ---
+16:#include <stdint.h>
+17:#include <stdbool.h>
+18:#include <stddef.h>
+
+--- ./include/monitoring/diagnostics_engine.h ---
+4:#include <stdbool.h>
+
+--- ./src/demo/hal_demo.cpp ---
+6:#include "hal_demo.h"
+7:#include "../../platforms/common/hal_interface.h"
+8:#include <stdio.h>
 
 --- ./src/ui/input_handler.cpp ---
 12:#include "ui/input_handler.h"
@@ -454,7 +507,11 @@ Include statements found in source files:
 18:#include <stdio.h>
 
 --- ./src/core/system_init.h ---
-15:#include "platforms/common/hal_interface.h"
+9:#include "hal_interface.h"
+
+--- ./src/core/system_info.cpp ---
+6:#include "core/system_info.h"
+7:#include <stdio.h>
 
 --- ./src/core/system_loop.h ---
 15:#include <stdint.h>
@@ -465,6 +522,15 @@ Include statements found in source files:
 13:#include "platforms/pico_w/include/board_config.h"
 14:#include <stdio.h>
 15:#include <string.h>
+
+--- ./src/utils/hal_test.h ---
+15:#include <stdbool.h>
+16:#include <stdint.h>
+
+--- ./src/utils/hal_test.cpp ---
+6:#include "hal_test.h"
+7:#include "../../platforms/common/hal_interface.h"
+8:#include <stdio.h>
 
 --- ./src/system/safety_monitor.cpp ---
 12:#include "system/safety_monitor.h"
@@ -477,6 +543,10 @@ Include statements found in source files:
 15:#include <stdint.h>
 16:#include <stdbool.h>
 
+--- ./src/monitoring/diagnostics_engine.cpp ---
+1:#include "monitoring/diagnostics_engine.h"
+2:#include <stdio.h>
+
 ================================================================================
 5. MISSING FILES REPORT
 ================================================================================
@@ -484,14 +554,8 @@ Checking for missing included files...
 
 ❌ MISSING: string.h (included by ./platforms/pico_w/hal/uart_hal.cpp)
 ❌ MISSING: string.h (included by ./platforms/pico_w/hal/uart_hal.cpp)
-❌ MISSING: string.h (included by ./platforms/pico_w/hal/gpio_hal.cpp)
-❌ MISSING: string.h (included by ./platforms/pico_w/hal/gpio_hal.cpp)
 ❌ MISSING: string.h (included by ./platforms/pico_w/hal/display_hal.cpp)
 ❌ MISSING: string.h (included by ./platforms/pico_w/hal/display_hal.cpp)
-❌ MISSING: demo/hal_demo.h (included by ./platforms/pico_w/src/main.cpp)
-❌ MISSING: demo/hal_demo.h (included by ./platforms/pico_w/src/main.cpp)
-❌ MISSING: utils/hal_test.h (included by ./platforms/pico_w/src/main.cpp)
-❌ MISSING: utils/hal_test.h (included by ./platforms/pico_w/src/main.cpp)
 ❌ MISSING: stm32f4xx_hal.h (included by ./platforms/nucleo_f446re/include/board_config.h)
 ❌ MISSING: stm32f4xx_hal.h (included by ./platforms/nucleo_f446re/include/board_config.h)
 ❌ MISSING: string.h (included by ./src/ui/input_handler.cpp)
@@ -506,10 +570,10 @@ Checking for missing included files...
 6. CMAKE FILES
 ================================================================================
 CMake configuration files:
-  ./CMakeLists.txt (     112 lines)
+  ./CMakeLists.txt (     168 lines)
   ./platforms/nucleo_f446re/CMakeLists.txt (       0 lines)
     ⚠ EMPTY CMAKE FILE: ./platforms/nucleo_f446re/CMakeLists.txt
-  ./platforms/pico_w/CMakeLists.txt (     164 lines)
+  ./platforms/pico_w/CMakeLists.txt (     116 lines)
   ./platforms/pico_w/pico_sdk_import.cmake (       0 lines)
     ⚠ EMPTY CMAKE FILE: ./platforms/pico_w/pico_sdk_import.cmake
   ./tests/CMakeLists.txt (       0 lines)
@@ -567,11 +631,6 @@ Build and utility scripts:
 Recommendations based on analysis:
 
 1. EMPTY FILES - These files need implementation:
-   - ./platforms/pico_w/hal/timer_hal.cpp
-   - ./platforms/pico_w/hal/pwm_hal.cpp
-   - ./platforms/pico_w/hal/i2c_hal.cpp
-   - ./platforms/pico_w/hal/adc_hal.cpp
-   - ./platforms/pico_w/hal/spi_hal.cpp
    - ./platforms/pico_w/include/wifi_manager.h
    - ./platforms/pico_w/include/board_init.h
    - ./platforms/pico_w/include/websocket_handler.h
@@ -619,7 +678,6 @@ Recommendations based on analysis:
    - ./hardware/components/buzzer/buzzer_driver.h
    - ./include/ui/status_indicators.h
    - ./include/ui/display_manager.h
-   - ./include/ui/input_handler.h
    - ./include/ui/menu_system.h
    - ./include/drivers/timer_driver.h
    - ./include/drivers/adc_driver.h
@@ -714,9 +772,9 @@ AUDIT COMPLETE
 Full report saved to: /Users/laurinbrittain/scope_rig/project_audit.txt
 
 Quick summary:
-  📁 C++ source files:       78
-  📁 Header files:       62
-  ⚠️  Empty files:      125
+  📁 C++ source files:       83
+  📁 Header files:       69
+  ⚠️  Empty files:      119
 
 Next steps:
 1. Review the missing files list in /Users/laurinbrittain/scope_rig/project_audit.txt

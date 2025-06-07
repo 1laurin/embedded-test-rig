@@ -9,7 +9,7 @@
  * @date 2025
  */
 
-#include "../../platforms/common/hal_interface.h"
+#include "hal_interface.h"
 #include "board_config.h"
 #include "pico/stdlib.h"
 #include "hardware/clocks.h"
@@ -46,7 +46,6 @@ hal_status_t hal_init(void)
     // Store system start time
     system_start_time = to_ms_since_boot(get_absolute_time());
 
-// Set up watchdog if needed
 #ifdef WATCHDOG_TIMEOUT_MS
     if (WATCHDOG_TIMEOUT_MS > 0)
     {
@@ -77,7 +76,6 @@ hal_status_t hal_deinit(void)
 
     printf("[HAL] Deinitializing HAL layer...\n");
 
-// Disable watchdog
 #ifdef WATCHDOG_TIMEOUT_MS
     watchdog_enable(0, 0);
 #endif
@@ -99,3 +97,28 @@ uint32_t hal_get_tick_ms(void)
 }
 
 /**
+ * @brief Delay execution for specified milliseconds
+ * @param ms Delay time in milliseconds
+ */
+void hal_delay_ms(uint32_t ms)
+{
+    sleep_ms(ms);
+}
+
+/**
+ * @brief Delay execution for specified microseconds
+ * @param us Delay time in microseconds
+ */
+void hal_delay_us(uint32_t us)
+{
+    sleep_us(us);
+}
+
+/**
+ * @brief Reset the system
+ */
+void hal_system_reset(void)
+{
+    printf("[HAL] System reset requested\n");
+    // Add system reset code here if needed
+}

@@ -3,7 +3,7 @@
  * @brief UART Hardware Abstraction Layer implementation for Raspberry Pi Pico W
  */
 
-#include "../../platforms/common/hal_interface.h"
+#include "hal_interface.h"
 #include "board_config.h"
 #include "pico/stdlib.h"
 #include "hardware/uart.h"
