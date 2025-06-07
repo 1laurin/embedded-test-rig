@@ -124,7 +124,7 @@ hal_status_t hal_display_clear(uint32_t color)
     display_ctx.bg_color = rgb565_color;
 
     char details[64];
-    snprintf(details, sizeof(details), "color=0x%06X (RGB565: 0x%04X)",
+    snprintf(details, sizeof(details), "color=0x%06lX (RGB565: 0x%04lX)",
              color, rgb565_color);
     log_display_operation("CLEAR", details);
 
@@ -194,7 +194,7 @@ hal_status_t hal_display_set_pixel(uint16_t x, uint16_t y, uint32_t color)
     if (pixel_count % 100 == 1)
     { // Log every 100th pixel
         char details[64];
-        snprintf(details, sizeof(details), "pos=(%d,%d) color=0x%06X", x, y, color);
+        snprintf(details, sizeof(details), "pos=(%d,%d) color=0x%06lX", x, y, color);
         log_display_operation("PIXEL", details);
     }
 
@@ -228,7 +228,7 @@ hal_status_t hal_display_draw_rect(uint16_t x, uint16_t y, uint16_t width, uint1
 
     char details[128];
     snprintf(details, sizeof(details),
-             "pos=(%d,%d) size=%dx%d color=0x%06X %s",
+             "pos=(%d,%d) size=%dx%d color=0x%06lX %s",
              x, y, width, height, color, filled ? "filled" : "outline");
     log_display_operation("RECT", details);
 
@@ -266,7 +266,7 @@ hal_status_t hal_display_draw_text(uint16_t x, uint16_t y, const char *text, uin
 
     char details[256];
     snprintf(details, sizeof(details),
-             "pos=(%d,%d) text=\"%s\" color=0x%06X bg=0x%06X",
+             "pos=(%d,%d) text=\"%s\" color=0x%06lX bg=0x%06lX",
              x, y, safe_text, color, bg_color);
     log_display_operation("TEXT", details);
 
@@ -416,7 +416,7 @@ void pico_display_draw_progress_bar(uint16_t x, uint16_t y, uint16_t width, uint
 
     char details[128];
     snprintf(details, sizeof(details),
-             "pos=(%d,%d) size=%dx%d progress=%d%% fg=0x%06X bg=0x%06X",
+             "pos=(%d,%d) size=%dx%d progress=%d%% fg=0x%06lX bg=0x%06lX",
              x, y, width, height, progress, fg_color, bg_color);
     log_display_operation("PROGRESS", details);
 }

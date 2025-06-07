@@ -12,7 +12,7 @@
 #ifndef SYSTEM_INIT_H
 #define SYSTEM_INIT_H
 
-#include "platforms/common/hal_interface.h"
+#include "../../platforms/common/hal_interface.h"
 
 #ifdef __cplusplus
 extern "C"

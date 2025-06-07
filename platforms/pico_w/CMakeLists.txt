@@ -1,30 +1,27 @@
 cmake_minimum_required(VERSION 3.13)
 
-# Include the Pico SDK
+# Include the Pico SDK BEFORE project() call
 include($ENV{PICO_SDK_PATH}/external/pico_sdk_import.cmake)
 
-# Set project name and version
 project(diagnostic_rig_pico VERSION 1.0.0 LANGUAGES C CXX ASM)
 
-# Set C/C++ standards
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Initialize the Pico SDK
 pico_sdk_init()
 
-# Add compiler options
-add_compile_options(-Wall -Wextra)
+# CRITICAL: Fix for macOS cross-compilation linker issues
+if(APPLE)
+    set(CMAKE_C_LINK_FLAGS "")
+    set(CMAKE_CXX_LINK_FLAGS "")
+    unset(CMAKE_OSX_DEPLOYMENT_TARGET)
+endif()
 
-# Define project root for easier path management
+add_compile_options(-Wall -Wextra -Wno-unused-parameter)
+
 set(PROJECT_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/../..)
 
-# =============================================================================
-# INCLUDE DIRECTORIES
-# =============================================================================
-
-# Add all include directories
 include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${PROJECT_ROOT}/include
@@ -33,88 +30,61 @@ include_directories(
     ${PROJECT_ROOT}/include/system
     ${PROJECT_ROOT}/include/demo
     ${PROJECT_ROOT}/include/utils
+    ${PROJECT_ROOT}/include/monitoring
     ${PROJECT_ROOT}/include/common
     ${PROJECT_ROOT}/platforms/common
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
-# =============================================================================
-# SOURCE FILE COLLECTION
-# =============================================================================
+# Collect sources safely
+function(safe_add_sources PATTERN RESULT_VAR)
+    file(GLOB FOUND_SOURCES ${PATTERN})
+    foreach(SRC ${FOUND_SOURCES})
+        if(EXISTS ${SRC})
+            file(SIZE ${SRC} SRC_SIZE)
+            if(SRC_SIZE GREATER 0)
+                list(APPEND ${RESULT_VAR} ${SRC})
+                set(${RESULT_VAR} ${${RESULT_VAR}} PARENT_SCOPE)
+            endif()
+        endif()
+    endforeach()
+endfunction()
 
-# Platform-specific Pico W sources
-file(GLOB PICO_PLATFORM_SOURCES
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/*.c"
-    "${CMAKE_CURRENT_SOURCE_DIR}/hal/*.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/hal/*.c"
-)
+set(PICO_PLATFORM_SOURCES "")
+safe_add_sources("${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp" PICO_PLATFORM_SOURCES)
+safe_add_sources("${CMAKE_CURRENT_SOURCE_DIR}/hal/*.cpp" PICO_PLATFORM_SOURCES)
 
-# Common source files (only include files that exist and are not empty)
+set(COMMON_SOURCES "")
 set(COMMON_SOURCE_DIRS
     "${PROJECT_ROOT}/src/core"
     "${PROJECT_ROOT}/src/ui"
     "${PROJECT_ROOT}/src/system"
     "${PROJECT_ROOT}/src/demo"
     "${PROJECT_ROOT}/src/utils"
-    "${PROJECT_ROOT}/src/logging"
     "${PROJECT_ROOT}/src/monitoring"
-    "${PROJECT_ROOT}/src/drivers"
-    "${PROJECT_ROOT}/src/protocols"
 )
 
-set(COMMON_SOURCES "")
 foreach(DIR ${COMMON_SOURCE_DIRS})
     if(EXISTS ${DIR})
-        file(GLOB DIR_SOURCES "${DIR}/*.cpp" "${DIR}/*.c")
-        foreach(SRC ${DIR_SOURCES})
-            # Only include files that are not empty (have size > 0)
-            file(SIZE ${SRC} SRC_SIZE)
-            if(SRC_SIZE GREATER 0)
-                list(APPEND COMMON_SOURCES ${SRC})
-            endif()
-        endforeach()
+        safe_add_sources("${DIR}/*.cpp" COMMON_SOURCES)
     endif()
 endforeach()
 
-# =============================================================================
-# EXECUTABLE CREATION
-# =============================================================================
-
-# Create the main executable
 add_executable(${PROJECT_NAME}
     ${PICO_PLATFORM_SOURCES}
     ${COMMON_SOURCES}
 )
 
-# =============================================================================
-# TARGET CONFIGURATION
-# =============================================================================
-
-# Set target-specific include directories
-target_include_directories(${PROJECT_NAME} PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
-    ${PROJECT_ROOT}/include
-    ${PROJECT_ROOT}/platforms/common
-    ${CMAKE_CURRENT_SOURCE_DIR}
-)
-
-# Set target properties
-target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_17)
-
-# Add target compile definitions
 target_compile_definitions(${PROJECT_NAME} PRIVATE
     PICO_BOARD_NAME="pico_w"
-    BOARD_NAME="Raspberry Pi Pico W"
-    MCU_NAME="RP2040"
-    MCU_FREQUENCY_HZ=125000000
+    PLATFORM_PICO_W=1
+    NUM_DIAGNOSTIC_CHANNELS=4
+    MAIN_LOOP_DELAY_MS=100
+    HEARTBEAT_INTERVAL_MS=1000
+    STATUS_UPDATE_INTERVAL_MS=5000
+    SAFETY_CHECK_INTERVAL_MS=500
 )
 
-# =============================================================================
-# LIBRARY LINKING
-# =============================================================================
-
-# Link Pico SDK libraries
 target_link_libraries(${PROJECT_NAME}
     pico_stdlib
     hardware_gpio
@@ -126,102 +96,23 @@ target_link_libraries(${PROJECT_NAME}
     hardware_timer
     hardware_irq
     hardware_clocks
-    hardware_pio
 )
 
-# Conditionally add WiFi libraries if needed
-option(ENABLE_WIFI "Enable WiFi support" OFF)
-if(ENABLE_WIFI)
-    target_link_libraries(${PROJECT_NAME}
-        pico_cyw43_arch_lwip_threadsafe_background
-    )
-    target_compile_definitions(${PROJECT_NAME} PRIVATE
-        WIFI_ENABLED=1
-    )
-else()
-    target_compile_definitions(${PROJECT_NAME} PRIVATE
-        WIFI_ENABLED=0
-    )
-endif()
-
-# =============================================================================
-# STDIO CONFIGURATION
-# =============================================================================
-
-# Enable USB output, disable UART for stdio
 pico_enable_stdio_usb(${PROJECT_NAME} 1)
 pico_enable_stdio_uart(${PROJECT_NAME} 0)
 
-# =============================================================================
-# OUTPUT FILES
-# =============================================================================
-
-# Create map/bin/hex/uf2 files
 pico_add_extra_outputs(${PROJECT_NAME})
 
-# Set binary name
 set_target_properties(${PROJECT_NAME} PROPERTIES
     OUTPUT_NAME "diagnostic_rig_pico"
 )
 
-# =============================================================================
-# BUILD INFORMATION
-# =============================================================================
-
-# Print build configuration
-message(STATUS "")
-message(STATUS "=== Pico W Build Configuration ===")
-message(STATUS "Project: ${PROJECT_NAME}")
-message(STATUS "Build Type: ${CMAKE_BUILD_TYPE}")
-message(STATUS "C++ Standard: ${CMAKE_CXX_STANDARD}")
-message(STATUS "Pico SDK Path: $ENV{PICO_SDK_PATH}")
-message(STATUS "WiFi Support: ${ENABLE_WIFI}")
-
-# Count and display source files
 list(LENGTH PICO_PLATFORM_SOURCES PICO_SRC_COUNT)
 list(LENGTH COMMON_SOURCES COMMON_SRC_COUNT)
 math(EXPR TOTAL_SRC_COUNT "${PICO_SRC_COUNT} + ${COMMON_SRC_COUNT}")
 
+message(STATUS "=== Pico W Build Configuration ===")
 message(STATUS "Platform Sources: ${PICO_SRC_COUNT}")
 message(STATUS "Common Sources: ${COMMON_SRC_COUNT}")
 message(STATUS "Total Sources: ${TOTAL_SRC_COUNT}")
-
-if(COMMON_SRC_COUNT EQUAL 0)
-    message(WARNING "No common source files found! Most functionality will be missing.")
-    message(STATUS "This is normal for a minimal build.")
-endif()
-
 message(STATUS "================================")
-message(STATUS "")
-
-# =============================================================================
-# DEBUGGING HELPERS
-# =============================================================================
-
-# Option to print all included files
-option(VERBOSE_BUILD "Print all source files being compiled" OFF)
-if(VERBOSE_BUILD)
-    message(STATUS "Platform source files:")
-    foreach(SRC ${PICO_PLATFORM_SOURCES})
-        message(STATUS "  ${SRC}")
-    endforeach()
-    
-    message(STATUS "Common source files:")
-    foreach(SRC ${COMMON_SOURCES})
-        message(STATUS "  ${SRC}")
-    endforeach()
-endif()
-
-# Custom target for cleaning build artifacts
-add_custom_target(clean-all
-    COMMAND ${CMAKE_COMMAND} -E remove_directory ${CMAKE_BINARY_DIR}
-    COMMENT "Removing entire build directory"
-)
-
-# Custom target for flashing
-add_custom_target(flash
-    COMMAND ${CMAKE_COMMAND} -E echo "Put Pico in BOOTSEL mode, then run:"
-    COMMAND ${CMAKE_COMMAND} -E echo "cp ${CMAKE_BINARY_DIR}/${PROJECT_NAME}.uf2 /Volumes/RPI-RP2/"
-    DEPENDS ${PROJECT_NAME}
-    COMMENT "Instructions for flashing firmware"
-)

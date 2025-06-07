@@ -1,101 +1,80 @@
 /**
- * @file hal_main.cpp
- * @brief Main HAL initialization and system functions for Raspberry Pi Pico W
- *
- * This file implements the main HAL functions including system initialization,
- * timing, and global HAL management.
- *
- * @author Multi-Channel Diagnostic Test Rig Team
- * @date 2025
+ * @file adc_hal.cpp
+ * @brief ADC Hardware Abstraction Layer implementation for Raspberry Pi Pico W
  */
 
 #include "../../platforms/common/hal_interface.h"
 #include "board_config.h"
 #include "pico/stdlib.h"
-#include "hardware/clocks.h"
-#include "hardware/watchdog.h"
+#include "hardware/adc.h"
 #include <stdio.h>
 
-// =============================================================================
-// PRIVATE VARIABLES
-// =============================================================================
+static bool adc_initialized = false;
 
-static bool hal_system_initialized = false;
-static uint32_t system_start_time = 0;
-
-// =============================================================================
-// PUBLIC FUNCTIONS
-// =============================================================================
-
-/**
- * @brief Initialize the HAL layer
- * @return HAL status code
- */
-hal_status_t hal_init(void)
-{
-    if (hal_system_initialized)
-    {
-        return HAL_OK; // Already initialized
+hal_status_t hal_adc_init(void) {
+    if (adc_initialized) {
+        return HAL_OK;
     }
-
-    printf("[HAL] Initializing Pico W HAL layer...\n");
-
-    // Initialize standard I/O and basic clocks
-    stdio_init_all();
-
-    // Store system start time
-    system_start_time = to_ms_since_boot(get_absolute_time());
-
-// Set up watchdog if needed
-#ifdef WATCHDOG_TIMEOUT_MS
-    if (WATCHDOG_TIMEOUT_MS > 0)
-    {
-        watchdog_enable(WATCHDOG_TIMEOUT_MS, 1);
-        printf("[HAL] Watchdog enabled with %d ms timeout\n", WATCHDOG_TIMEOUT_MS);
-    }
-#endif
-
-    hal_system_initialized = true;
-
-    printf("[HAL] Pico W HAL layer initialized successfully\n");
-    printf("[HAL] System clock: %lu Hz\n", clock_get_hz(clk_sys));
-    printf("[HAL] Peripheral clock: %lu Hz\n", clock_get_hz(clk_peri));
-
+    
+    printf("[ADC] Initializing ADC subsystem...\n");
+    
+    adc_init();
+    adc_set_temp_sensor_enabled(true);
+    
+    adc_initialized = true;
+    printf("[ADC] ADC subsystem initialized\n");
+    
     return HAL_OK;
 }
 
-/**
- * @brief Deinitialize the HAL layer
- * @return HAL status code
- */
-hal_status_t hal_deinit(void)
-{
-    if (!hal_system_initialized)
-    {
-        return HAL_OK; // Already deinitialized
+hal_status_t hal_adc_config(const adc_config_t *config) {
+    if (!adc_initialized || !config) {
+        return HAL_ERROR;
     }
+    
+    if (config->channel < 5) {
+        if (config->channel < 3) {
+            adc_gpio_init(26 + config->channel);
+        }
+        return HAL_OK;
+    }
+    
+    return HAL_INVALID_PARAM;
+}
 
-    printf("[HAL] Deinitializing HAL layer...\n");
-
-// Disable watchdog
-#ifdef WATCHDOG_TIMEOUT_MS
-    watchdog_enable(0, 0);
-#endif
-
-    hal_system_initialized = false;
-
-    printf("[HAL] HAL layer deinitialized\n");
-
+hal_status_t hal_adc_read(uint8_t channel, uint16_t *value) {
+    if (!adc_initialized || !value || channel >= 5) {
+        return HAL_INVALID_PARAM;
+    }
+    
+    adc_select_input(channel);
+    *value = adc_read();
+    
     return HAL_OK;
 }
 
-/**
- * @brief Get system tick count in milliseconds
- * @return Current tick count
- */
-uint32_t hal_get_tick_ms(void)
-{
-    return to_ms_since_boot(get_absolute_time());
+hal_status_t hal_adc_read_voltage(uint8_t channel, float *voltage) {
+    if (!voltage) {
+        return HAL_INVALID_PARAM;
+    }
+    
+    uint16_t raw_value;
+    hal_status_t status = hal_adc_read(channel, &raw_value);
+    
+    if (status == HAL_OK) {
+        *voltage = (float)raw_value * ADC_REFERENCE_VOLTAGE / (1 << ADC_RESOLUTION_BITS);
+    }
+    
+    return status;
 }
 
-/**
+hal_status_t hal_adc_start_continuous(uint8_t channel, void (*callback)(uint8_t, uint16_t)) {
+    (void)channel;
+    (void)callback;
+    return HAL_NOT_SUPPORTED;
+}
+
+hal_status_t hal_adc_stop_continuous(uint8_t channel) {
+    (void)channel;
+    return HAL_NOT_SUPPORTED;
+}
