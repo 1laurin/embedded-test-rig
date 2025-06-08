@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Build script for multi-channel diagnostic test rig
-# Usage: ./build.sh [platform] [options]
+# Main build script dispatcher
+# Usage: ./build.sh [platform] [build_type]
 
 set -e
 

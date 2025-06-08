@@ -1,9 +1,6 @@
 /**
  * @file system_info.h
  * @brief System information display interface
- *
- * @author Multi-Channel Diagnostic Test Rig Team
- * @date 2025
  */
 
 #ifndef SYSTEM_INFO_H
@@ -13,10 +10,9 @@
 extern "C" {
 #endif
 
-/**
- * @brief Display system information
- */
 void display_system_info(void);
+void print_startup_banner(void);
+void print_init_progress(void);
 
 #ifdef __cplusplus
 }

@@ -1,0 +1,17 @@
+{
+    "status": "ok",
+    "message": "API endpoint working",
+    "timestamp": "2025-06-07T12:00:00Z",
+    "system": {
+        "temperature": 25.5,
+        "uptime": 3600,
+        "freeMemory": 62,
+        "loopCount": 150000
+    },
+    "channels": [
+        {"id": 1, "enabled": false, "voltage": 0.0, "current": 0.0},
+        {"id": 2, "enabled": false, "voltage": 0.0, "current": 0.0},
+        {"id": 3, "enabled": false, "voltage": 0.0, "current": 0.0},
+        {"id": 4, "enabled": false, "voltage": 0.0, "current": 0.0}
+    ]
+}

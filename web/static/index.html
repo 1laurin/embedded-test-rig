@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-Channel Diagnostic Test Rig</title>
+    <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/css/diagnostic.css">
+</head>
+<body>
+    <div class="connection-status">
+        <div class="connection-indicator" id="connectionIndicator"></div>
+        <span id="connectionStatus">Disconnected</span>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <h1>🔧 Multi-Channel Diagnostic Test Rig</h1>
+            <div class="subtitle">Raspberry Pi Pico W • Real-time Hardware Monitoring</div>
+            <div class="device-info">
+                <span id="deviceIP">IP: Not Connected</span>
+                <span id="deviceUptime">Uptime: 00:00:00</span>
+            </div>
+        </div>
+
+        <div class="dashboard">
+            <div class="main-display">
+                <div class="display-header">
+                    <div class="display-title">Channel Monitoring</div>
+                    <div class="system-status">
+                        <div class="status-indicator" id="systemStatus"></div>
+                        <span id="systemStatusText">System Offline</span>
+                    </div>
+                </div>
+
+                <div class="channels-grid">
+                    <div class="channel" id="channel1" data-channel="1">
+                        <div class="channel-header">
+                            <span class="channel-name">Channel 1</span>
+                            <div class="channel-toggle" onclick="toggleChannel(1)"></div>
+                        </div>
+                        <div class="metrics">
+                            <div class="metric">
+                                <div class="metric-label">Voltage</div>
+                                <div class="metric-value" id="ch1-voltage">0.00V</div>
+                            </div>
+                            <div class="metric">
+                                <div class="metric-label">Current</div>
+                                <div class="metric-value" id="ch1-current">0.00A</div>
+                            </div>
+                            <div class="metric">
+                                <div class="metric-label">Status</div>
+                                <div class="metric-status" id="ch1-status">OFF</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="channel" id="channel2" data-channel="2">
+                        <div class="channel-header">
+                            <span class="channel-name">Channel 2</span>
+                            <div class="channel-toggle" onclick="toggleChannel(2)"></div>
+                        </div>
+                        <div class="metrics">
+                            <div class="metric">
+                                <div class="metric-label">Voltage</div>
+                                <div class="metric-value" id="ch2-voltage">0.00V</div>
+                            </div>
+                            <div class="metric">
+                                <div class="metric-label">Current</div>
+                                <div class="metric-value" id="ch2-current">0.00A</div>
+                            </div>
+                            <div class="metric">
+                                <div class="metric-label">Status</div>
+                                <div class="metric-status" id="ch2-status">OFF</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="channel" id="channel3" data-channel="3">
+                        <div class="channel-header">
+                            <span class="channel-name">Channel 3</span>
+                            <div class="channel-toggle" onclick="toggleChannel(3)"></div>
+                        </div>
+                        <div class="metrics">
+                            <div class="metric">
+                                <div class="metric-label">Voltage</div>
+                                <div class="metric-value" id="ch3-voltage">0.00V</div>
+                            </div>
+                            <div class="metric">
+                                <div class="metric-label">Current</div>
+                                <div class="metric-value" id="ch3-current">0.00A</div>
+                            </div>
+                            <div class="metric">
+                                <div class="metric-label">Status</div>
+                                <div class="metric-status" id="ch3-status">OFF</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="channel" id="channel4" data-channel="4">
+                        <div class="channel-header">
+                            <span class="channel-name">Channel 4</span>
+                            <div class="channel-toggle" onclick="toggleChannel(4)"></div>
+                        </div>
+                        <div class="metrics">
+                            <div class="metric">
+                                <div class="metric-label">Voltage</div>
+                                <div class="metric-value" id="ch4-voltage">0.00V</div>
+                            </div>
+                            <div class="metric">
+                                <div class="metric-label">Current</div>
+                                <div class="metric-value" id="ch4-current">0.00A</div>
+                            </div>
+                            <div class="metric">
+                                <div class="metric-label">Status</div>
+                                <div class="metric-status" id="ch4-status">OFF</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="system-metrics">
+                    <div class="metric-card">
+                        <div class="metric-label">Temperature</div>
+                        <div class="metric-value" id="systemTemp">25.0°C</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Loop Count</div>
+                        <div class="metric-value" id="loopCount">0</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Free Memory</div>
+                        <div class="metric-value" id="freeMemory">64KB</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="controls-panel">
+                <div class="control-section">
+                    <h3>🎛️ Channel Controls</h3>
+                    <div class="button-group">
+                        <button class="control-btn" onclick="enableAllChannels()">Enable All</button>
+                        <button class="control-btn" onclick="disableAllChannels()">Disable All</button>
+                        <button class="control-btn" onclick="toggleAllChannels()">Toggle All</button>
+                    </div>
+                </div>
+
+                <div class="control-section">
+                    <h3>🔧 System Controls</h3>
+                    <div class="button-group">
+                        <button class="control-btn" onclick="runDiagnostics()">Run Diagnostics</button>
+                        <button class="control-btn" onclick="runHalDemo()">HAL Demo</button>
+                        <button class="control-btn" onclick="runHalTest()">HAL Test</button>
+                        <button class="control-btn warning" onclick="testSafety()">Safety Test</button>
+                        <button class="control-btn danger" onclick="emergencyStop()">Emergency Stop</button>
+                    </div>
+                </div>
+
+                <div class="control-section">
+                    <h3>📊 Connection</h3>
+                    <div class="connection-controls">
+                        <input type="text" id="picoIP" placeholder="Pico W IP Address" value="192.168.1.100">
+                        <button class="control-btn" onclick="connectToPico()">Connect</button>
+                        <button class="control-btn" onclick="disconnectFromPico()">Disconnect</button>
+                    </div>
+                </div>
+
+                <div class="control-section">
+                    <h3>📊 System Info</h3>
+                    <div class="system-info" id="systemInfo">
+                        <div class="info-item">
+                            <span class="info-label">Board:</span>
+                            <span class="info-value">Pico W</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Firmware:</span>
+                            <span class="info-value">v1.0.0</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Build:</span>
+                            <span class="info-value" id="buildDate">Unknown</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="log-panel">
+            <div class="log-header">
+                <h3>📋 System Logs</h3>
+                <div class="log-controls">
+                    <select id="logLevel">
+                        <option value="debug">Debug</option>
+                        <option value="info" selected>Info</option>
+                        <option value="warn">Warning</option>
+                        <option value="error">Error</option>
+                    </select>
+                    <button class="control-btn" onclick="clearLogs()">Clear</button>
+                </div>
+            </div>
+            <div class="log-container" id="logContainer">
+                <!-- Logs will be populated here -->
+            </div>
+        </div>
+    </div>
+
+    <script src="../assets/js/websocket-client.js"></script>
+    <script src="../assets/js/diagnostic-interface.js"></script>
+    <script src="../assets/js/main.js"></script>
+</body>
+</html>
