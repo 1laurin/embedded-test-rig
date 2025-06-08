@@ -163,6 +163,9 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE
     CYW43_USE_SPI=1
     PICO_CYW43_ARCH_THREADSAFE_BACKGROUND=1
     
+    # lwIP configuration path
+    LWIP_OPTTEST_FILE=1
+    
     # Optional: Set country code (change as needed)
     CYW43_DEFAULT_COUNTRY=CYW43_COUNTRY_USA
 )

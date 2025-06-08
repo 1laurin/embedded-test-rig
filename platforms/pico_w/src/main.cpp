@@ -55,7 +55,8 @@ static void setup_emergency_stop(void);
 static void system_emergency_stop_handler(void);
 static void cleanup_and_exit(void);
 static bool setup_wifi_connection(void);
-static void wifi_event_handler(wifi_event_t event, const wifi_config_t *config);
+// Forward declarations with simplified types
+static void wifi_event_handler_simplified(void);
 static bool websocket_command_handler(const char *command, const char *params, int client_id);
 static void websocket_client_handler(int client_id, bool connected, const char *client_ip);
 static void configure_wifi_via_uart(void);
@@ -273,8 +274,8 @@ static bool setup_wifi_connection(void)
         return false;
     }
 
-    // Register WiFi event callback
-    wifi_register_event_callback(wifi_event_handler);
+    // Register simplified WiFi event callback (no actual callback in simplified version)
+    wifi_register_event_callback(NULL);
 
     // Set hostname
     wifi_set_hostname(WIFI_HOSTNAME);
@@ -336,7 +337,7 @@ static void handle_uart_wifi_commands(void)
     // Implementation depends on your UART command parsing system
 
     // Example implementation (you'd integrate this with your existing UART handler):
-    /*
+    
     if (strncmp(uart_command, "WIFI_CONNECT", 12) == 0)
     {
         char ssid[WIFI_SSID_MAX_LENGTH];
@@ -390,28 +391,18 @@ static void handle_uart_wifi_commands(void)
         wifi_disconnect();
         printf("[WIFI] Disconnected\n");
     }
-    */
+    
 }
 
 /**
- * @brief WiFi event handler callback
+ * @brief Simplified WiFi event handler
  */
-static void wifi_event_handler(wifi_event_t event, const wifi_config_t *config)
+static void wifi_event_handler_simplified(void)
 {
-    switch (event)
+    // Simplified event handling - just check if we're connected
+    if (wifi_is_connected())
     {
-    case WIFI_EVENT_CONNECTING:
-        printf("[WIFI] Connecting to %s...\n", config ? config->ssid : "unknown");
-        if (websocket_setup_complete)
-        {
-            websocket_send_log("info", "WiFi", "Connecting to network...");
-        }
-        break;
-
-    case WIFI_EVENT_CONNECTED:
-        printf("[WIFI] Connected to %s\n", config ? config->ssid : "unknown");
-        printf("[WIFI] IP Address: %s\n", wifi_get_ip_address());
-        printf("[WIFI] Signal strength: %d dBm\n", wifi_get_rssi());
+        printf("[WIFI] WiFi connection detected\n");
 
         // Initialize WebSocket server now that WiFi is connected
         if (!websocket_setup_complete)
@@ -441,44 +432,73 @@ static void wifi_event_handler(wifi_event_t event, const wifi_config_t *config)
             // Send initial system status
             send_system_status_update();
         }
-        break;
-
-    case WIFI_EVENT_DISCONNECTED:
-        printf("[WIFI] Disconnected from WiFi\n");
+    }
+    else
+    {
+        printf("[WIFI] WiFi disconnected\n");
         if (websocket_setup_complete)
         {
             websocket_send_log("warn", "WiFi", "Disconnected from network");
         }
-
-        // Attempt reconnection if we have credentials
-        if (USE_HARDCODED_WIFI || wifi_configured_via_uart)
-        {
-            printf("[WIFI] Attempting reconnection in %d seconds...\n", WIFI_RECONNECT_DELAY_MS / 1000);
-            // Note: Actual reconnection logic would be handled by the WiFi manager
-        }
-        break;
-
-    case WIFI_EVENT_CONNECTION_FAILED:
-        wifi_connection_attempts++;
-        printf("[WIFI] Connection failed (attempt %lu)\n", wifi_connection_attempts);
-        if (websocket_setup_complete)
-        {
-            websocket_send_log("error", "WiFi", "Connection failed");
-        }
-
-        if (wifi_connection_attempts < WIFI_MAX_RETRY_COUNT)
-        {
-            printf("[WIFI] Will retry connection...\n");
-        }
-        else
-        {
-            printf("[WIFI] Maximum retry attempts reached\n");
-        }
-        break;
-
-    default:
-        break;
     }
+}
+register_command_callback(websocket_command_handler);
+websocket_register_client_callback(websocket_client_handler);
+
+printf("[WEBSOCKET] WebSocket server started on port %d\n", NET_WEBSOCKET_PORT);
+websocket_send_log("info", "WebSocket", "Server started and ready for connections");
+}
+else
+{
+    printf("[WEBSOCKET] Failed to start WebSocket server\n");
+}
+}
+
+if (websocket_setup_complete)
+{
+    websocket_send_log("info", "WiFi", "Successfully connected to network");
+
+    // Send initial system status
+    send_system_status_update();
+}
+break;
+
+case WIFI_EVENT_DISCONNECTED:
+printf("[WIFI] Disconnected from WiFi\n");
+if (websocket_setup_complete)
+{
+    websocket_send_log("warn", "WiFi", "Disconnected from network");
+}
+
+// Attempt reconnection if we have credentials
+if (USE_HARDCODED_WIFI || wifi_configured_via_uart)
+{
+    printf("[WIFI] Attempting reconnection in %d seconds...\n", WIFI_RECONNECT_DELAY_MS / 1000);
+    // Note: Actual reconnection logic would be handled by the WiFi manager
+}
+break;
+
+case WIFI_EVENT_CONNECTION_FAILED:
+wifi_connection_attempts++;
+printf("[WIFI] Connection failed (attempt %lu)\n", wifi_connection_attempts);
+if (websocket_setup_complete)
+{
+    websocket_send_log("error", "WiFi", "Connection failed");
+}
+
+if (wifi_connection_attempts < WIFI_MAX_RETRY_COUNT)
+{
+    printf("[WIFI] Will retry connection...\n");
+}
+else
+{
+    printf("[WIFI] Maximum retry attempts reached\n");
+}
+break;
+
+default:
+break;
+}
 }
 
 /**
@@ -556,7 +576,7 @@ static void update_wifi_led_status(void)
     if (!pico_w_initialized)
         return;
 
-    uint32_t current_time = hal_get_tick_ms();
+    uint32_t current_time = to_ms_since_boot(get_absolute_time()); // Use Pico SDK time
 
     if (wifi_is_connected())
     {
@@ -564,7 +584,7 @@ static void update_wifi_led_status(void)
         if (current_time - last_wifi_led_update >= WIFI_LED_BLINK_CONNECTED_MS)
         {
             wifi_led_state = !wifi_led_state;
-            cyw43_arch_gpio_put(CYW43_WL_GPIO_LED_PIN, wifi_led_state);
+            wifi_set_led(wifi_led_state);
             last_wifi_led_update = current_time;
         }
     }
@@ -574,14 +594,14 @@ static void update_wifi_led_status(void)
         if (current_time - last_wifi_led_update >= WIFI_LED_BLINK_CONNECTING_MS)
         {
             wifi_led_state = !wifi_led_state;
-            cyw43_arch_gpio_put(CYW43_WL_GPIO_LED_PIN, wifi_led_state);
+            wifi_set_led(wifi_led_state);
             last_wifi_led_update = current_time;
         }
     }
     else
     {
         // Off when disconnected and not trying to connect
-        cyw43_arch_gpio_put(CYW43_WL_GPIO_LED_PIN, 0);
+        wifi_set_led(false);
         wifi_led_state = false;
     }
 }
@@ -594,13 +614,13 @@ static void send_system_status_update(void)
     if (!websocket_setup_complete)
         return;
 
-    // Create system status message
+    // Create system status message (simplified - remove missing functions)
     char status_msg[512];
     snprintf(status_msg, sizeof(status_msg),
-             "System Status: Online | WiFi: %s | Uptime: %lu ms | Free RAM: %lu bytes",
+             "System Status: Online | WiFi: %s | Uptime: %lu ms",
              wifi_is_connected() ? "Connected" : "Disconnected",
-             hal_get_tick_ms(),
-             hal_get_free_heap_size());
+             to_ms_since_boot(get_absolute_time()) // Use Pico SDK time function
+    );
 
     websocket_send_log("info", "Status", status_msg);
 }
@@ -662,21 +682,45 @@ static void send_channel_updates(void)
         float current = 0.0f;
         bool channel_enabled = false;
 
-        // Check if channel is enabled
+        // Check if channel is enabled (simplified - use direct GPIO read)
         switch (channel)
         {
         case 1:
-            channel_enabled = hal_gpio_read(DIAG_CH1_ENABLE_PIN);
-            break;
+        {
+            gpio_state_t state;
+            if (hal_gpio_read(DIAG_CH1_ENABLE_PIN, &state) == HAL_OK)
+            {
+                channel_enabled = (state == GPIO_STATE_HIGH);
+            }
+        }
+        break;
         case 2:
-            channel_enabled = hal_gpio_read(DIAG_CH2_ENABLE_PIN);
-            break;
+        {
+            gpio_state_t state;
+            if (hal_gpio_read(DIAG_CH2_ENABLE_PIN, &state) == HAL_OK)
+            {
+                channel_enabled = (state == GPIO_STATE_HIGH);
+            }
+        }
+        break;
         case 3:
-            channel_enabled = hal_gpio_read(DIAG_CH3_ENABLE_PIN);
-            break;
+        {
+            gpio_state_t state;
+            if (hal_gpio_read(DIAG_CH3_ENABLE_PIN, &state) == HAL_OK)
+            {
+                channel_enabled = (state == GPIO_STATE_HIGH);
+            }
+        }
+        break;
         case 4:
-            channel_enabled = hal_gpio_read(DIAG_CH4_ENABLE_PIN);
-            break;
+        {
+            gpio_state_t state;
+            if (hal_gpio_read(DIAG_CH4_ENABLE_PIN, &state) == HAL_OK)
+            {
+                channel_enabled = (state == GPIO_STATE_HIGH);
+            }
+        }
+        break;
         }
 
         if (channel_enabled)
@@ -700,8 +744,8 @@ static void send_channel_updates(void)
             }
         }
 
-        // Send channel data via WebSocket
-        websocket_send_channel_data(channel, voltage, current, channel_enabled);
+        // Send channel data via WebSocket (use the simplified 3-parameter version)
+        websocket_send_channel_data(channel, voltage, current);
     }
 }
 
@@ -710,12 +754,21 @@ static void send_channel_updates(void)
  */
 static void web_integration_update(void)
 {
-    uint32_t current_time = hal_get_tick_ms();
+    uint32_t current_time = to_ms_since_boot(get_absolute_time()); // Use Pico SDK time
 
     // Update WiFi manager
     if (wifi_setup_complete)
     {
         wifi_manager_update();
+
+        // Check WiFi status periodically and handle events
+        static bool last_wifi_status = false;
+        bool current_wifi_status = wifi_is_connected();
+        if (current_wifi_status != last_wifi_status)
+        {
+            wifi_event_handler_simplified();
+            last_wifi_status = current_wifi_status;
+        }
     }
 
     // Update WiFi LED status

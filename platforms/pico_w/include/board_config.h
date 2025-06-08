@@ -238,15 +238,8 @@ extern "C"
 #define STATIC_IP_GATEWAY "192.168.1.1"
 #define STATIC_IP_DNS "8.8.8.8"
 
-// WiFi Security
-#define WIFI_AUTH_OPEN 0
-#define WIFI_AUTH_WEP 1
-#define WIFI_AUTH_WPA_PSK 2
-#define WIFI_AUTH_WPA2_PSK 3
-#define WIFI_AUTH_WPA_WPA2_PSK 4
-#define WIFI_AUTH_ENTERPRISE 5
-#define WIFI_AUTH_WPA3_PSK 6
-#define WIFI_DEFAULT_AUTH WIFI_AUTH_WPA2_PSK
+// WiFi Security (removed - defined as enums in wifi_manager.h)
+#define WIFI_DEFAULT_AUTH_MODE 3 // WPA2_PSK equivalent
 
     // =============================================================================
     // WEBSOCKET CONFIGURATION
@@ -409,7 +402,7 @@ extern "C"
     // WIFI STATUS DEFINITIONS
     // =============================================================================
 
-// WiFi connection states
+// WiFi connection states (for internal use - don't conflict with enums)
 #define WIFI_STATE_DISCONNECTED 0
 #define WIFI_STATE_CONNECTING 1
 #define WIFI_STATE_CONNECTED 2
@@ -417,12 +410,7 @@ extern "C"
 #define WIFI_STATE_TIMEOUT 4
 #define WIFI_STATE_AP_MODE 5
 
-// WiFi event types
-#define WIFI_EVENT_CONNECTED 1
-#define WIFI_EVENT_DISCONNECTED 2
-#define WIFI_EVENT_GOT_IP 3
-#define WIFI_EVENT_LOST_IP 4
-#define WIFI_EVENT_SCAN_DONE 5
+    // Remove conflicting event and auth definitions - these will be in wifi_manager.h as enums
 
     // =============================================================================
     // HELPER MACROS
@@ -469,33 +457,7 @@ extern "C"
 #define SAFETY_CHECK_INTERVAL_MS 500
 #endif
 
-    // WiFi configuration structure
-    typedef struct
-    {
-        char ssid[WIFI_SSID_MAX_LENGTH];
-        char password[WIFI_PASSWORD_MAX_LENGTH];
-        uint8_t auth_mode;
-        bool dhcp_enabled;
-        char static_ip[16];
-        char netmask[16];
-        char gateway[16];
-        char dns[16];
-        uint32_t connect_timeout_ms;
-        uint8_t max_retry_count;
-    } wifi_config_t;
-
-    // Network status structure
-    typedef struct
-    {
-        uint8_t wifi_state;
-        bool is_connected;
-        char ip_address[16];
-        int8_t rssi;
-        uint32_t connect_time;
-        uint32_t disconnect_count;
-        uint32_t bytes_sent;
-        uint32_t bytes_received;
-    } network_status_t;
+    // Remove duplicate wifi_config_t and network_status_t - these will be in wifi_manager.h
 
 #ifdef __cplusplus
 }
