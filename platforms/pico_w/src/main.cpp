@@ -1,6 +1,6 @@
 /**
  * @file main.cpp
- * @brief Main application with WebSocket integration for Raspberry Pi Pico W
+ * @brief Main application with enhanced WiFi and WebSocket integration for Raspberry Pi Pico W
  *
  * This file integrates WiFi connectivity and WebSocket server with the existing
  * diagnostic test rig functionality, enabling real-time web-based monitoring.
@@ -20,17 +20,31 @@
 #include "websocket_server.h"
 #include "diagnostics_engine.h"
 #include "board_config.h"
+
+// Pico W specific includes
+#include "pico/cyw43_arch.h"
+#include "pico/stdlib.h"
+#include "hardware/watchdog.h"
+
 #include <stdio.h>
+#include <string.h>
 
 // =============================================================================
 // WIFI CREDENTIALS (Change these for your network)
 // =============================================================================
 
+#ifndef WIFI_SSID
 #define WIFI_SSID "YourWiFiNetwork"
+#endif
+
+#ifndef WIFI_PASSWORD
 #define WIFI_PASSWORD "YourWiFiPassword"
+#endif
 
 // Set to true to use the above credentials, false to configure via UART
+#ifndef USE_HARDCODED_WIFI
 #define USE_HARDCODED_WIFI false
+#endif
 
 // =============================================================================
 // PRIVATE FUNCTION DECLARATIONS
@@ -47,6 +61,10 @@ static void websocket_client_handler(int client_id, bool connected, const char *
 static void configure_wifi_via_uart(void);
 static void send_channel_updates(void);
 static void web_integration_update(void);
+static void update_wifi_led_status(void);
+static bool initialize_pico_w_hardware(void);
+static void send_system_status_update(void);
+static void handle_uart_wifi_commands(void);
 
 // =============================================================================
 // PRIVATE VARIABLES
@@ -54,8 +72,18 @@ static void web_integration_update(void);
 
 static bool wifi_setup_complete = false;
 static bool websocket_setup_complete = false;
+static bool pico_w_initialized = false;
 static uint32_t last_channel_update = 0;
 static uint32_t last_web_update = 0;
+static uint32_t last_status_update = 0;
+static uint32_t last_wifi_led_update = 0;
+static uint32_t wifi_connection_attempts = 0;
+static bool wifi_led_state = false;
+
+// WiFi configuration buffer for UART commands
+static char wifi_ssid_buffer[WIFI_SSID_MAX_LENGTH] = {0};
+static char wifi_password_buffer[WIFI_PASSWORD_MAX_LENGTH] = {0};
+static bool wifi_configured_via_uart = false;
 
 // =============================================================================
 // MAIN FUNCTION
@@ -63,8 +91,22 @@ static uint32_t last_web_update = 0;
 
 int main()
 {
+    // Initialize stdio for printf/scanf
+    stdio_init_all();
+
+    // Small delay to allow USB connection to stabilize
+    sleep_ms(1000);
+
     // Print startup banner
     print_startup_banner();
+
+    // Initialize Pico W specific hardware first
+    printf("[MAIN] Initializing Pico W hardware...\n");
+    if (!initialize_pico_w_hardware())
+    {
+        printf("CRITICAL ERROR: Pico W hardware initialization failed\n");
+        return -1;
+    }
 
     // Initialize the entire system
     printf("[MAIN] Initializing core system...\n");
@@ -73,6 +115,7 @@ int main()
     {
         printf("CRITICAL ERROR: System initialization failed (status: %d)\n", init_status);
         printf("System cannot continue. Please check hardware connections.\n");
+        cleanup_and_exit();
         return -1;
     }
 
@@ -96,42 +139,67 @@ int main()
     if (!setup_wifi_connection())
     {
         printf("WARNING: WiFi setup failed, continuing without network features\n");
-        websocket_send_log("warn", "Network", "WiFi connection failed - running in offline mode");
+        if (websocket_setup_complete)
+        {
+            websocket_send_log("warn", "Network", "WiFi connection failed - running in offline mode");
+        }
     }
 
     // Run HAL feature demonstration
     printf("[MAIN] Running HAL demonstration...\n");
     run_hal_demo();
-    websocket_send_log("info", "HAL", "HAL demonstration completed");
+    if (websocket_setup_complete)
+    {
+        websocket_send_log("info", "HAL", "HAL demonstration completed");
+    }
 
     // Test all HAL subsystems
     printf("[MAIN] Testing HAL subsystems...\n");
     if (!test_hal_subsystems())
     {
         printf("WARNING: Some HAL subsystem tests failed\n");
-        websocket_send_log("warn", "HAL", "Some HAL subsystem tests failed");
+        if (websocket_setup_complete)
+        {
+            websocket_send_log("warn", "HAL", "Some HAL subsystem tests failed");
+        }
     }
     else
     {
-        websocket_send_log("info", "HAL", "All HAL subsystem tests passed");
+        if (websocket_setup_complete)
+        {
+            websocket_send_log("info", "HAL", "All HAL subsystem tests passed");
+        }
     }
 
     printf("\n");
     printf("=======================================================\n");
     printf(" System Ready - Starting Main Application Loop\n");
     printf("=======================================================\n");
+
     if (wifi_is_connected())
     {
         printf("📡 WiFi Connected: %s\n", wifi_get_ip_address());
-        printf("🌐 WebSocket Server: http://%s:8080\n", wifi_get_ip_address());
-        printf("🖥️  Web Interface: http://%s/static/\n", wifi_get_ip_address());
+        printf("🌐 WebSocket Server: ws://%s:%d\n", wifi_get_ip_address(), NET_WEBSOCKET_PORT);
+        printf("🖥️  Web Interface: http://%s:%d\n", wifi_get_ip_address(), NET_HTTP_PORT);
     }
+    else
+    {
+        printf("📡 WiFi: Not connected (offline mode)\n");
+        if (!USE_HARDCODED_WIFI)
+        {
+            printf("💡 Send 'WIFI_CONNECT <SSID> <PASSWORD>' via UART to connect\n");
+        }
+    }
+
     printf("🎛️  Press user button to toggle diagnostic channels\n");
     printf("📡 Send UART commands for remote control\n");
     printf("🛡️  System performing automatic safety monitoring\n");
     printf("\n");
 
-    websocket_send_log("info", "System", "Multi-Channel Diagnostic Test Rig online and ready");
+    if (websocket_setup_complete)
+    {
+        websocket_send_log("info", "System", "Multi-Channel Diagnostic Test Rig online and ready");
+    }
 
     // Enter the main application loop
     run_main_loop();
@@ -146,6 +214,29 @@ int main()
 // =============================================================================
 
 /**
+ * @brief Initialize Pico W specific hardware
+ */
+static bool initialize_pico_w_hardware(void)
+{
+    // Initialize CYW43 WiFi/Bluetooth chip
+    if (cyw43_arch_init_with_country(CYW43_COUNTRY_USA) != 0)
+    {
+        printf("[PICO_W] Failed to initialize CYW43 WiFi chip\n");
+        return false;
+    }
+
+    // Enable WiFi station mode
+    cyw43_arch_enable_sta_mode();
+
+    // Set the WiFi LED to off initially
+    cyw43_arch_gpio_put(CYW43_WL_GPIO_LED_PIN, 0);
+
+    pico_w_initialized = true;
+    printf("[PICO_W] CYW43 WiFi chip initialized successfully\n");
+    return true;
+}
+
+/**
  * @brief Print the startup banner
  */
 static void print_startup_banner(void)
@@ -155,9 +246,10 @@ static void print_startup_banner(void)
     printf("  Multi-Channel Diagnostic Test Rig - Pico W Edition\n");
     printf("  🌐 With WiFi & WebSocket Integration\n");
     printf("=========================================================\n");
-    printf("Version: 1.0.0 WebSocket\n");
+    printf("Version: 1.0.0 WebSocket Enhanced\n");
     printf("Platform: Raspberry Pi Pico W\n");
     printf("MCU: RP2040 @ 125 MHz\n");
+    printf("WiFi: CYW43439 (802.11b/g/n)\n");
     printf("Build Date: %s %s\n", __DATE__, __TIME__);
     printf("=========================================================\n");
     printf("\n");
@@ -168,6 +260,12 @@ static void print_startup_banner(void)
  */
 static bool setup_wifi_connection(void)
 {
+    if (!pico_w_initialized)
+    {
+        printf("[WIFI] Pico W hardware not initialized\n");
+        return false;
+    }
+
     // Initialize WiFi manager
     if (!wifi_manager_init())
     {
@@ -183,23 +281,28 @@ static bool setup_wifi_connection(void)
 
     // Connect to WiFi
     bool wifi_connected = false;
+    wifi_connection_attempts = 0;
 
     if (USE_HARDCODED_WIFI)
     {
         printf("[WIFI] Connecting to %s...\n", WIFI_SSID);
+        wifi_connection_attempts++;
         wifi_connected = wifi_connect(WIFI_SSID, WIFI_PASSWORD);
+
+        if (wifi_connected)
+        {
+            printf("[WIFI] Connection successful!\n");
+        }
+        else
+        {
+            printf("[WIFI] Failed to connect to WiFi\n");
+            printf("[WIFI] Will continue attempting to connect in background\n");
+        }
     }
     else
     {
         configure_wifi_via_uart();
-        // After configuration, connection will be handled by the event callback
-        wifi_connected = true; // Assume configuration was successful
-    }
-
-    if (!wifi_connected && USE_HARDCODED_WIFI)
-    {
-        printf("[WIFI] Failed to connect to WiFi\n");
-        return false;
+        // Connection will be handled when UART command is received
     }
 
     wifi_setup_complete = true;
@@ -212,14 +315,82 @@ static bool setup_wifi_connection(void)
 static void configure_wifi_via_uart(void)
 {
     printf("\n");
-    printf("=== WiFi Configuration ===\n");
-    printf("No hardcoded WiFi credentials found.\n");
+    printf("=== WiFi Configuration Mode ===\n");
+    printf("No hardcoded WiFi credentials configured.\n");
     printf("Send UART commands to configure WiFi:\n");
     printf("  WIFI_CONNECT <SSID> <PASSWORD>\n");
-    printf("  Example: WIFI_CONNECT MyNetwork MyPassword\n");
+    printf("  Example: WIFI_CONNECT MyNetwork MyPassword123\n");
     printf("  For open networks: WIFI_CONNECT MyNetwork\n");
-    printf("===============================\n");
+    printf("  Check status: WIFI_STATUS\n");
+    printf("  Disconnect: WIFI_DISCONNECT\n");
+    printf("================================\n");
     printf("\n");
+}
+
+/**
+ * @brief Handle UART WiFi commands
+ */
+static void handle_uart_wifi_commands(void)
+{
+    // This function would be called from the UART handler
+    // Implementation depends on your UART command parsing system
+
+    // Example implementation (you'd integrate this with your existing UART handler):
+    /*
+    if (strncmp(uart_command, "WIFI_CONNECT", 12) == 0)
+    {
+        char ssid[WIFI_SSID_MAX_LENGTH];
+        char password[WIFI_PASSWORD_MAX_LENGTH];
+
+        // Parse command: WIFI_CONNECT <SSID> <PASSWORD>
+        int parsed = sscanf(uart_command + 13, "%31s %63s", ssid, password);
+
+        if (parsed >= 1)
+        {
+            strncpy(wifi_ssid_buffer, ssid, sizeof(wifi_ssid_buffer) - 1);
+            if (parsed >= 2)
+            {
+                strncpy(wifi_password_buffer, password, sizeof(wifi_password_buffer) - 1);
+            }
+            else
+            {
+                wifi_password_buffer[0] = '\0'; // Open network
+            }
+
+            wifi_configured_via_uart = true;
+            wifi_connection_attempts++;
+
+            printf("[WIFI] Attempting to connect to %s...\n", wifi_ssid_buffer);
+            if (wifi_connect(wifi_ssid_buffer, wifi_password_buffer))
+            {
+                printf("[WIFI] Connection initiated\n");
+            }
+            else
+            {
+                printf("[WIFI] Connection failed\n");
+            }
+        }
+    }
+    else if (strncmp(uart_command, "WIFI_STATUS", 11) == 0)
+    {
+        if (wifi_is_connected())
+        {
+            printf("[WIFI] Status: Connected to %s\n", wifi_get_ssid());
+            printf("[WIFI] IP Address: %s\n", wifi_get_ip_address());
+            printf("[WIFI] RSSI: %d dBm\n", wifi_get_rssi());
+        }
+        else
+        {
+            printf("[WIFI] Status: Disconnected\n");
+            printf("[WIFI] Attempts: %lu\n", wifi_connection_attempts);
+        }
+    }
+    else if (strncmp(uart_command, "WIFI_DISCONNECT", 15) == 0)
+    {
+        wifi_disconnect();
+        printf("[WIFI] Disconnected\n");
+    }
+    */
 }
 
 /**
@@ -230,17 +401,22 @@ static void wifi_event_handler(wifi_event_t event, const wifi_config_t *config)
     switch (event)
     {
     case WIFI_EVENT_CONNECTING:
-        printf("[WIFI] Connecting to %s...\n", config->ssid);
-        websocket_send_log("info", "WiFi", "Connecting to network...");
+        printf("[WIFI] Connecting to %s...\n", config ? config->ssid : "unknown");
+        if (websocket_setup_complete)
+        {
+            websocket_send_log("info", "WiFi", "Connecting to network...");
+        }
         break;
 
     case WIFI_EVENT_CONNECTED:
-        printf("[WIFI] Connected to %s\n", config->ssid);
+        printf("[WIFI] Connected to %s\n", config ? config->ssid : "unknown");
         printf("[WIFI] IP Address: %s\n", wifi_get_ip_address());
+        printf("[WIFI] Signal strength: %d dBm\n", wifi_get_rssi());
 
         // Initialize WebSocket server now that WiFi is connected
         if (!websocket_setup_complete)
         {
+            printf("[WEBSOCKET] Starting WebSocket server...\n");
             if (websocket_server_init())
             {
                 websocket_setup_complete = true;
@@ -255,21 +431,49 @@ static void wifi_event_handler(wifi_event_t event, const wifi_config_t *config)
             else
             {
                 printf("[WEBSOCKET] Failed to start WebSocket server\n");
-                websocket_send_log("error", "WebSocket", "Failed to start server");
             }
         }
 
-        websocket_send_log("info", "WiFi", "Successfully connected to network");
+        if (websocket_setup_complete)
+        {
+            websocket_send_log("info", "WiFi", "Successfully connected to network");
+
+            // Send initial system status
+            send_system_status_update();
+        }
         break;
 
     case WIFI_EVENT_DISCONNECTED:
         printf("[WIFI] Disconnected from WiFi\n");
-        websocket_send_log("warn", "WiFi", "Disconnected from network");
+        if (websocket_setup_complete)
+        {
+            websocket_send_log("warn", "WiFi", "Disconnected from network");
+        }
+
+        // Attempt reconnection if we have credentials
+        if (USE_HARDCODED_WIFI || wifi_configured_via_uart)
+        {
+            printf("[WIFI] Attempting reconnection in %d seconds...\n", WIFI_RECONNECT_DELAY_MS / 1000);
+            // Note: Actual reconnection logic would be handled by the WiFi manager
+        }
         break;
 
     case WIFI_EVENT_CONNECTION_FAILED:
-        printf("[WIFI] Connection failed\n");
-        websocket_send_log("error", "WiFi", "Connection failed");
+        wifi_connection_attempts++;
+        printf("[WIFI] Connection failed (attempt %lu)\n", wifi_connection_attempts);
+        if (websocket_setup_complete)
+        {
+            websocket_send_log("error", "WiFi", "Connection failed");
+        }
+
+        if (wifi_connection_attempts < WIFI_MAX_RETRY_COUNT)
+        {
+            printf("[WIFI] Will retry connection...\n");
+        }
+        else
+        {
+            printf("[WIFI] Maximum retry attempts reached\n");
+        }
         break;
 
     default:
@@ -284,9 +488,36 @@ static bool websocket_command_handler(const char *command, const char *params, i
 {
     printf("[WEBSOCKET] Command from client %d: %s %s\n", client_id, command, params ? params : "");
 
-    // Commands are already handled in the WebSocket server implementation
-    // This callback is for logging and additional processing if needed
+    // Handle specific commands
+    if (strcmp(command, "GET_STATUS") == 0)
+    {
+        send_system_status_update();
+        return true;
+    }
+    else if (strcmp(command, "GET_CHANNELS") == 0)
+    {
+        send_channel_updates();
+        return true;
+    }
+    else if (strcmp(command, "WIFI_STATUS") == 0)
+    {
+        // Send WiFi status
+        char wifi_status[256];
+        if (wifi_is_connected())
+        {
+            snprintf(wifi_status, sizeof(wifi_status),
+                     "Connected to %s, IP: %s, RSSI: %d dBm",
+                     wifi_get_ssid(), wifi_get_ip_address(), wifi_get_rssi());
+        }
+        else
+        {
+            snprintf(wifi_status, sizeof(wifi_status), "Disconnected");
+        }
+        websocket_send_log("info", "WiFi", wifi_status);
+        return true;
+    }
 
+    // Log command execution
     char log_msg[128];
     snprintf(log_msg, sizeof(log_msg), "Command executed: %s", command);
     websocket_send_log("info", "Command", log_msg);
@@ -301,17 +532,77 @@ static void websocket_client_handler(int client_id, bool connected, const char *
 {
     if (connected)
     {
-        printf("[WEBSOCKET] Client %d connected from %s\n", client_id, client_ip);
+        printf("[WEBSOCKET] Client %d connected from %s\n", client_id, client_ip ? client_ip : "unknown");
 
-        char log_msg[64];
-        snprintf(log_msg, sizeof(log_msg), "Client connected from %s", client_ip);
+        char log_msg[128];
+        snprintf(log_msg, sizeof(log_msg), "Client connected from %s", client_ip ? client_ip : "unknown");
         websocket_send_log("info", "WebSocket", log_msg);
+
+        // Send welcome message and initial status
+        send_system_status_update();
     }
     else
     {
         printf("[WEBSOCKET] Client %d disconnected\n", client_id);
         websocket_send_log("info", "WebSocket", "Client disconnected");
     }
+}
+
+/**
+ * @brief Update WiFi LED status based on connection state
+ */
+static void update_wifi_led_status(void)
+{
+    if (!pico_w_initialized)
+        return;
+
+    uint32_t current_time = hal_get_tick_ms();
+
+    if (wifi_is_connected())
+    {
+        // Slow blink when connected (every 2 seconds)
+        if (current_time - last_wifi_led_update >= WIFI_LED_BLINK_CONNECTED_MS)
+        {
+            wifi_led_state = !wifi_led_state;
+            cyw43_arch_gpio_put(CYW43_WL_GPIO_LED_PIN, wifi_led_state);
+            last_wifi_led_update = current_time;
+        }
+    }
+    else if (wifi_connection_attempts > 0)
+    {
+        // Fast blink when trying to connect (every 200ms)
+        if (current_time - last_wifi_led_update >= WIFI_LED_BLINK_CONNECTING_MS)
+        {
+            wifi_led_state = !wifi_led_state;
+            cyw43_arch_gpio_put(CYW43_WL_GPIO_LED_PIN, wifi_led_state);
+            last_wifi_led_update = current_time;
+        }
+    }
+    else
+    {
+        // Off when disconnected and not trying to connect
+        cyw43_arch_gpio_put(CYW43_WL_GPIO_LED_PIN, 0);
+        wifi_led_state = false;
+    }
+}
+
+/**
+ * @brief Send system status update via WebSocket
+ */
+static void send_system_status_update(void)
+{
+    if (!websocket_setup_complete)
+        return;
+
+    // Create system status message
+    char status_msg[512];
+    snprintf(status_msg, sizeof(status_msg),
+             "System Status: Online | WiFi: %s | Uptime: %lu ms | Free RAM: %lu bytes",
+             wifi_is_connected() ? "Connected" : "Disconnected",
+             hal_get_tick_ms(),
+             hal_get_free_heap_size());
+
+    websocket_send_log("info", "Status", status_msg);
 }
 
 /**
@@ -340,7 +631,10 @@ static void system_emergency_stop_handler(void)
     printf("Initiating immediate system shutdown...\n");
 
     // Send emergency notification via WebSocket
-    websocket_send_log("error", "Emergency", "EMERGENCY STOP ACTIVATED - All channels disabled");
+    if (websocket_setup_complete)
+    {
+        websocket_send_log("error", "Emergency", "EMERGENCY STOP ACTIVATED - All channels disabled");
+    }
 
     // Perform emergency shutdown
     emergency_shutdown("Emergency stop button pressed or safety violation");
@@ -360,24 +654,54 @@ static void send_channel_updates(void)
     }
 
     // Read and send channel data for each diagnostic channel
-    for (int channel = 1; channel <= 4; channel++)
+    for (int channel = 1; channel <= NUM_DIAGNOSTIC_CHANNELS; channel++)
     {
         // Read voltage and current for this channel
         uint16_t adc_value;
         float voltage = 0.0f;
         float current = 0.0f;
+        bool channel_enabled = false;
 
-        // Read voltage (simplified - you'd use appropriate ADC channels)
-        if (hal_adc_read(channel - 1, &adc_value) == HAL_OK)
+        // Check if channel is enabled
+        switch (channel)
         {
-            voltage = (float)adc_value * 3.3f / 4096.0f * 10.0f; // Scale for actual voltage range
+        case 1:
+            channel_enabled = hal_gpio_read(DIAG_CH1_ENABLE_PIN);
+            break;
+        case 2:
+            channel_enabled = hal_gpio_read(DIAG_CH2_ENABLE_PIN);
+            break;
+        case 3:
+            channel_enabled = hal_gpio_read(DIAG_CH3_ENABLE_PIN);
+            break;
+        case 4:
+            channel_enabled = hal_gpio_read(DIAG_CH4_ENABLE_PIN);
+            break;
         }
 
-        // Read current (you'd implement current sensing)
-        current = voltage * 0.1f; // Simplified current calculation
+        if (channel_enabled)
+        {
+            // Read voltage (map channels to appropriate ADC inputs)
+            if (channel <= 2)
+            {
+                if (hal_adc_read(channel - 1, &adc_value) == HAL_OK)
+                {
+                    voltage = ADC_TO_VOLTAGE(adc_value) * (CHANNEL_VOLTAGE_RANGE / 3.3f);
+                }
+            }
+
+            // Read current (simplified - you'd implement proper current sensing)
+            if (channel == 3)
+            {
+                if (hal_adc_read(ADC_CH3_CURRENT, &adc_value) == HAL_OK)
+                {
+                    current = ADC_TO_VOLTAGE(adc_value) * (CHANNEL_CURRENT_RANGE / 3.3f);
+                }
+            }
+        }
 
         // Send channel data via WebSocket
-        websocket_send_channel_data(channel, voltage, current);
+        websocket_send_channel_data(channel, voltage, current, channel_enabled);
     }
 }
 
@@ -394,6 +718,9 @@ static void web_integration_update(void)
         wifi_manager_update();
     }
 
+    // Update WiFi LED status
+    update_wifi_led_status();
+
     // Update WebSocket server
     if (websocket_setup_complete)
     {
@@ -407,10 +734,25 @@ static void web_integration_update(void)
         last_channel_update = current_time;
     }
 
+    // Send periodic status updates
+    if (current_time - last_status_update >= STATUS_UPDATE_INTERVAL_MS) // Every 5 seconds
+    {
+        send_system_status_update();
+        last_status_update = current_time;
+    }
+
     // General web integration updates
     if (current_time - last_web_update >= 100) // Every 100ms
     {
-        // Add any other periodic web-related tasks here
+        // Handle any UART WiFi commands
+        handle_uart_wifi_commands();
+
+        // Check for WiFi reconnection if needed
+        if (!wifi_is_connected() && (USE_HARDCODED_WIFI || wifi_configured_via_uart))
+        {
+            // WiFi manager should handle automatic reconnection
+        }
+
         last_web_update = current_time;
     }
 }
@@ -423,7 +765,11 @@ static void cleanup_and_exit(void)
     printf("\n[MAIN] Starting system cleanup...\n");
 
     // Send shutdown notification
-    websocket_send_log("info", "System", "System shutdown initiated");
+    if (websocket_setup_complete)
+    {
+        websocket_send_log("info", "System", "System shutdown initiated");
+        sleep_ms(100); // Give time for message to send
+    }
 
     // Stop WebSocket server
     if (websocket_setup_complete)
@@ -438,6 +784,13 @@ static void cleanup_and_exit(void)
         wifi_disconnect();
         wifi_manager_deinit();
         wifi_setup_complete = false;
+    }
+
+    // Deinitialize CYW43 WiFi chip
+    if (pico_w_initialized)
+    {
+        cyw43_arch_deinit();
+        pico_w_initialized = false;
     }
 
     // Disable input processing
@@ -462,19 +815,22 @@ static void cleanup_and_exit(void)
 }
 
 // =============================================================================
-// ENHANCED MAIN LOOP (Modified from system_loop.cpp)
+// ENHANCED MAIN LOOP INTEGRATION
 // =============================================================================
 
-// We need to override the main loop to include web integration updates
-// This replaces the run_main_loop() call with an enhanced version
-
-#ifdef ENABLE_WEB_INTEGRATION_IN_MAIN_LOOP
-
-// This is an alternative main loop that includes web integration
-// You can enable this by defining ENABLE_WEB_INTEGRATION_IN_MAIN_LOOP
-void run_enhanced_main_loop(void)
+// Override the main loop to include web integration
+// This can be called from your existing run_main_loop() function
+void integrate_web_updates_in_main_loop(void)
 {
-    printf("[LOOP] Starting enhanced main application loop with web integration...\n");
+    // Call this function from within your main loop
+    web_integration_update();
+}
+
+// Example of how to modify your existing main loop:
+/*
+void run_main_loop(void)
+{
+    printf("[LOOP] Starting main application loop...\n");
 
     uint32_t loop_counter = 0;
     bool system_stop_requested = false;
@@ -483,43 +839,24 @@ void run_enhanced_main_loop(void)
     {
         loop_counter++;
 
-        // Handle user input
+        // Existing loop functionality
         handle_user_input();
-
-        // Perform safety checks
         check_system_safety();
 
-        // Update web integration (WiFi + WebSocket)
-        web_integration_update();
+        // Add web integration updates
+        integrate_web_updates_in_main_loop();
 
-        // Heartbeat task (blink LED)
+        // Rest of your existing loop...
         if (loop_counter % 1000 == 0)
         {
             hal_gpio_toggle(LED_STATUS_PIN);
             printf("[LOOP] Heartbeat: %lu loops\n", loop_counter);
-
-            // Send heartbeat via WebSocket
-            char heartbeat_msg[64];
-            snprintf(heartbeat_msg, sizeof(heartbeat_msg), "Heartbeat - Loop count: %lu", loop_counter);
-            websocket_send_log("debug", "Heartbeat", heartbeat_msg);
         }
 
-        // Test diagnostic channels periodically
-        if (loop_counter % 5000 == 0)
-        {
-            test_diagnostic_channels();
-        }
-
-        // Check if stop was requested
         system_stop_requested = is_system_stop_requested();
-
         hal_delay_ms(MAIN_LOOP_DELAY_MS);
     }
 
-    printf("[LOOP] Enhanced main loop exiting after %lu iterations\n", loop_counter);
+    printf("[LOOP] Main loop exiting after %lu iterations\n", loop_counter);
 }
-
-// Replace the main loop call in main() with this enhanced version
-// run_enhanced_main_loop();
-
-#endif // ENABLE_WEB_INTEGRATION_IN_MAIN_LOOP
+*/

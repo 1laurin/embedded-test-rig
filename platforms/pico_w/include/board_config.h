@@ -1,9 +1,9 @@
 /**
  * @file board_config.h
- * @brief Board configuration for Raspberry Pi Pico W
+ * @brief Board configuration for Raspberry Pi Pico W with WiFi support
  *
  * This file contains all pin mappings, hardware configurations, and
- * platform-specific constants for the Pico W board.
+ * platform-specific constants for the Pico W board including WiFi functionality.
  *
  * @author Multi-Channel Diagnostic Test Rig Team
  * @date 2025
@@ -18,6 +18,16 @@
 #include "hardware/spi.h"
 #include "hardware/i2c.h"
 #include "hardware/pwm.h"
+
+// Standard Pico SDK includes
+#include "pico/stdlib.h"
+#include "hardware/adc.h"
+#include "hardware/uart.h"
+#include "hardware/spi.h"
+#include "hardware/i2c.h"
+#include "hardware/pwm.h"
+
+// WiFi includes are handled in source files, not here
 
 #ifdef __cplusplus
 extern "C"
@@ -50,7 +60,7 @@ extern "C"
 // =============================================================================
 
 // Status LEDs
-#define LED_STATUS_PIN 25 // GPIO 25 (built-in LED)
+#define LED_STATUS_PIN PICO_DEFAULT_LED_PIN // GPIO 25 (built-in LED - note: shares with WiFi on Pico W)
 #define LED_ERROR_PIN 16                    // External error LED
 #define LED_COMM_PIN 17                     // Communication activity LED
 #define LED_POWER_PIN 18                    // Power status LED
@@ -172,20 +182,105 @@ extern "C"
 #define PWM_BUZZER_FREQUENCY 2000     // 2 kHz buzzer frequency
 
     // =============================================================================
-    // WIFI CONFIGURATION
+    // WIFI CONFIGURATION (Enhanced for Pico W)
     // =============================================================================
 
+// WiFi Enable and Mode
+#define WIFI_ENABLED 1
+#define WIFI_USE_CYW43 1
+#define WIFI_MODE_STA 1 // Station mode (client)
+#define WIFI_MODE_AP 0  // Access Point mode (disabled by default)
+
+// WiFi Credentials and Network Settings
 #define WIFI_SSID_MAX_LENGTH 32
 #define WIFI_PASSWORD_MAX_LENGTH 64
 #define WIFI_HOSTNAME "pico-diagnostic-rig"
-#define WIFI_CONNECT_TIMEOUT_MS 30000 // 30 seconds
-#define WIFI_RECONNECT_DELAY_MS 5000  // 5 seconds
+#define WIFI_CONNECT_TIMEOUT_MS 30000      // 30 seconds
+#define WIFI_RECONNECT_DELAY_MS 5000       // 5 seconds
+#define WIFI_MAX_RETRY_COUNT 10            // Maximum connection retries
+#define WIFI_STATUS_CHECK_INTERVAL_MS 1000 // Check connection status every 1s
+
+// Default WiFi credentials (change these for your network)
+#define WIFI_DEFAULT_SSID "YourWiFiNetwork"
+#define WIFI_DEFAULT_PASSWORD "YourWiFiPassword"
+#define USE_HARDCODED_WIFI false // Set to true to use hardcoded credentials
+
+// WiFi Power Management
+#define WIFI_PM_NONE 0        // No power management
+#define WIFI_PM_PERFORMANCE 1 // Performance mode
+#define WIFI_PM_POWERSAVE 2   // Power save mode
+#define WIFI_POWER_MODE WIFI_PM_PERFORMANCE
+
+// WiFi LED Status (shares with built-in LED on Pico W)
+#define WIFI_LED_ENABLED 1
+#define WIFI_LED_BLINK_CONNECTED_MS 2000 // Slow blink when connected
+#define WIFI_LED_BLINK_CONNECTING_MS 200 // Fast blink when connecting
+#define WIFI_LED_SOLID_DISCONNECTED 0    // Off when disconnected
 
 // Network settings
 #define NET_HTTP_PORT 80
 #define NET_WEBSOCKET_PORT 8080
 #define NET_TELNET_PORT 23
+#define NET_TCP_PORT 8081
+#define NET_UDP_PORT 8082
 #define NET_MAX_CONNECTIONS 4
+#define NET_BUFFER_SIZE 1024
+#define NET_TIMEOUT_MS 10000
+
+// DHCP Settings
+#define DHCP_ENABLED 1
+#define DHCP_TIMEOUT_MS 30000
+
+// Static IP Settings (used when DHCP disabled)
+#define STATIC_IP_ENABLED 0
+#define STATIC_IP_ADDR "192.168.1.100"
+#define STATIC_IP_NETMASK "255.255.255.0"
+#define STATIC_IP_GATEWAY "192.168.1.1"
+#define STATIC_IP_DNS "8.8.8.8"
+
+// WiFi Security
+#define WIFI_AUTH_OPEN 0
+#define WIFI_AUTH_WEP 1
+#define WIFI_AUTH_WPA_PSK 2
+#define WIFI_AUTH_WPA2_PSK 3
+#define WIFI_AUTH_WPA_WPA2_PSK 4
+#define WIFI_AUTH_ENTERPRISE 5
+#define WIFI_AUTH_WPA3_PSK 6
+#define WIFI_DEFAULT_AUTH WIFI_AUTH_WPA2_PSK
+
+    // =============================================================================
+    // WEBSOCKET CONFIGURATION
+    // =============================================================================
+
+#define WEBSOCKET_ENABLED 1
+#define WEBSOCKET_MAX_CLIENTS 4
+#define WEBSOCKET_BUFFER_SIZE 1024
+#define WEBSOCKET_PING_INTERVAL_MS 30000 // 30 seconds
+#define WEBSOCKET_TIMEOUT_MS 60000       // 1 minute timeout
+#define WEBSOCKET_MAX_FRAME_SIZE 4096
+
+// WebSocket message types
+#define WS_MSG_TEXT 0x01
+#define WS_MSG_BINARY 0x02
+#define WS_MSG_CLOSE 0x08
+#define WS_MSG_PING 0x09
+#define WS_MSG_PONG 0x0A
+
+    // =============================================================================
+    // HTTP SERVER CONFIGURATION
+    // =============================================================================
+
+#define HTTP_SERVER_ENABLED 1
+#define HTTP_MAX_CONCURRENT_CONNECTIONS 4
+#define HTTP_REQUEST_BUFFER_SIZE 2048
+#define HTTP_RESPONSE_BUFFER_SIZE 4096
+#define HTTP_TIMEOUT_MS 30000
+#define HTTP_KEEPALIVE_TIMEOUT_MS 5000
+
+// HTTP Response codes
+#define HTTP_200_OK "200 OK"
+#define HTTP_404_NOT_FOUND "404 Not Found"
+#define HTTP_500_INTERNAL_ERROR "500 Internal Server Error"
 
     // =============================================================================
     // DISPLAY CONFIGURATION (WEB-BASED FOR PICO W)
@@ -201,6 +296,7 @@ extern "C"
 #define WEB_DISPLAY_ENABLED 1
 #define WEB_DISPLAY_WEBSOCKET 1
 #define WEB_DISPLAY_CANVAS 1
+#define WEB_DISPLAY_FRAMERATE 10 // 10 FPS
 
     // =============================================================================
     // TIMING CONFIGURATION
@@ -209,10 +305,12 @@ extern "C"
 #define TIMER_SYSTEM_ID 0     // System timer
 #define TIMER_DIAGNOSTIC_ID 1 // Diagnostic timer
 #define TIMER_HEARTBEAT_ID 2  // Heartbeat timer
+#define TIMER_WIFI_ID 3       // WiFi status timer
 
-#define HEARTBEAT_INTERVAL_MS 1000 // 1 second heartbeat
-#define DIAGNOSTIC_INTERVAL_MS 50  // 50ms diagnostic cycle
-#define SYSTEM_TICK_INTERVAL_MS 1  // 1ms system tick
+#define HEARTBEAT_INTERVAL_MS 1000   // 1 second heartbeat
+#define DIAGNOSTIC_INTERVAL_MS 50    // 50ms diagnostic cycle
+#define SYSTEM_TICK_INTERVAL_MS 1    // 1ms system tick
+#define WIFI_STATUS_INTERVAL_MS 5000 // 5 second WiFi status check
 
     // =============================================================================
     // INTERRUPT PRIORITIES
@@ -225,6 +323,7 @@ extern "C"
 
 // Specific interrupt priorities
 #define IRQ_PRIORITY_SYSTEM IRQ_PRIORITY_HIGHEST
+#define IRQ_PRIORITY_WIFI IRQ_PRIORITY_HIGH
 #define IRQ_PRIORITY_UART IRQ_PRIORITY_HIGH
 #define IRQ_PRIORITY_SPI IRQ_PRIORITY_HIGH
 #define IRQ_PRIORITY_I2C IRQ_PRIORITY_MEDIUM
@@ -245,6 +344,7 @@ extern "C"
 #define LOG_BUFFER_SIZE 2048
 #define DATA_BUFFER_SIZE 1024
 #define WEB_BUFFER_SIZE 4096
+#define WIFI_BUFFER_SIZE 2048
 
     // =============================================================================
     // DIAGNOSTIC CHANNEL CONFIGURATION
@@ -302,11 +402,31 @@ extern "C"
 // Log destinations
 #define LOG_TO_UART 1
 #define LOG_TO_WEB 1
+#define LOG_TO_WEBSOCKET 1
 #define LOG_TO_FLASH 0 // Disabled by default
 
-// =============================================================================
-// HELPER MACROS
-// =============================================================================
+    // =============================================================================
+    // WIFI STATUS DEFINITIONS
+    // =============================================================================
+
+// WiFi connection states
+#define WIFI_STATE_DISCONNECTED 0
+#define WIFI_STATE_CONNECTING 1
+#define WIFI_STATE_CONNECTED 2
+#define WIFI_STATE_FAILED 3
+#define WIFI_STATE_TIMEOUT 4
+#define WIFI_STATE_AP_MODE 5
+
+// WiFi event types
+#define WIFI_EVENT_CONNECTED 1
+#define WIFI_EVENT_DISCONNECTED 2
+#define WIFI_EVENT_GOT_IP 3
+#define WIFI_EVENT_LOST_IP 4
+#define WIFI_EVENT_SCAN_DONE 5
+
+    // =============================================================================
+    // HELPER MACROS
+    // =============================================================================
 
 // GPIO helper macros
 #define GPIO_SET_HIGH(pin) gpio_put(pin, 1)
@@ -328,18 +448,14 @@ extern "C"
 #define SEC_TO_MS(sec) ((sec) * 1000)
 #define MIN_TO_MS(min) ((min) * 60 * 1000)
 
-#ifdef __cplusplus
-}
-#endif
+// WiFi helper macros (implementation in wifi_manager.cpp)
+#define WIFI_IS_CONNECTED() wifi_is_connected()
+#define WIFI_SET_LED(state) wifi_set_led(state)
+#define WIFI_TOGGLE_LED() wifi_toggle_led()
 
-#endif // PICO_W_BOARD_CONFIG_H
-// =============================================================================
-// MISSING CONSTANTS (Added by fix script)
-// =============================================================================
-
-#ifndef NUM_DIAGNOSTIC_CHANNELS
-#define NUM_DIAGNOSTIC_CHANNELS 4
-#endif
+    // =============================================================================
+    // COMPATIBILITY CONSTANTS
+    // =============================================================================
 
 #ifndef MAIN_LOOP_DELAY_MS
 #define MAIN_LOOP_DELAY_MS 100
@@ -353,36 +469,36 @@ extern "C"
 #define SAFETY_CHECK_INTERVAL_MS 500
 #endif
 
-// GPIO pin aliases for compatibility
-#ifndef LED_STATUS_PIN
-#define LED_STATUS_PIN PICO_DEFAULT_LED_PIN
+    // WiFi configuration structure
+    typedef struct
+    {
+        char ssid[WIFI_SSID_MAX_LENGTH];
+        char password[WIFI_PASSWORD_MAX_LENGTH];
+        uint8_t auth_mode;
+        bool dhcp_enabled;
+        char static_ip[16];
+        char netmask[16];
+        char gateway[16];
+        char dns[16];
+        uint32_t connect_timeout_ms;
+        uint8_t max_retry_count;
+    } wifi_config_t;
+
+    // Network status structure
+    typedef struct
+    {
+        uint8_t wifi_state;
+        bool is_connected;
+        char ip_address[16];
+        int8_t rssi;
+        uint32_t connect_time;
+        uint32_t disconnect_count;
+        uint32_t bytes_sent;
+        uint32_t bytes_received;
+    } network_status_t;
+
+#ifdef __cplusplus
+}
 #endif
 
-#ifndef LED_ERROR_PIN
-#define LED_ERROR_PIN 16
-#endif
-
-#ifndef LED_COMM_PIN  
-#define LED_COMM_PIN 17
-#endif
-
-#ifndef LED_POWER_PIN
-#define LED_POWER_PIN 18
-#endif
-
-#ifndef BTN_USER_PIN
-#define BTN_USER_PIN 14
-#endif
-
-#ifndef RELAY_1_PIN
-#define RELAY_1_PIN 6
-#endif
-
-#ifndef RELAY_2_PIN
-#define RELAY_2_PIN 7
-#endif
-
-#ifndef BUZZER_PIN
-#define BUZZER_PIN 8
-#endif
-
+#endif // PICO_W_BOARD_CONFIG_H

@@ -1,5 +1,8 @@
 cmake_minimum_required(VERSION 3.13)
 
+# IMPORTANT: Set board type BEFORE including pico_sdk_import.cmake
+set(PICO_BOARD pico_w)
+
 # Include the Pico SDK
 include($ENV{PICO_SDK_PATH}/external/pico_sdk_import.cmake)
 
@@ -117,20 +120,13 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 # Set target properties
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_17)
 
-# Add target compile definitions
-target_compile_definitions(${PROJECT_NAME} PRIVATE
-    PICO_BOARD_NAME="pico_w"
-    BOARD_NAME="Raspberry Pi Pico W"
-    MCU_NAME="RP2040"
-    MCU_FREQUENCY_HZ=125000000
-)
-
 # =============================================================================
-# LIBRARY LINKING
+# LIBRARY LINKING - UNIFIED SECTION
 # =============================================================================
 
-# Link Pico SDK libraries
+# Link all required libraries (including WiFi)
 target_link_libraries(${PROJECT_NAME}
+    # Core Pico SDK libraries
     pico_stdlib
     hardware_gpio
     hardware_uart
@@ -142,30 +138,46 @@ target_link_libraries(${PROJECT_NAME}
     hardware_irq
     hardware_clocks
     hardware_pio
+    
+    # WiFi libraries for Pico W
+    pico_cyw43_arch_lwip_threadsafe_background
+    pico_lwip
+    pico_lwip_http
 )
 
-# Conditionally add WiFi libraries if needed
-option(ENABLE_WIFI "Enable WiFi support" OFF)
-if(ENABLE_WIFI)
-    target_link_libraries(${PROJECT_NAME}
-        pico_cyw43_arch_lwip_threadsafe_background
-    )
-    target_compile_definitions(${PROJECT_NAME} PRIVATE
-        WIFI_ENABLED=1
-    )
-else()
-    target_compile_definitions(${PROJECT_NAME} PRIVATE
-        WIFI_ENABLED=0
-    )
-endif()
+# =============================================================================
+# COMPILE DEFINITIONS - UNIFIED SECTION
+# =============================================================================
+
+# Add all compile definitions
+target_compile_definitions(${PROJECT_NAME} PRIVATE
+    # Board identification
+    PICO_BOARD_NAME="pico_w"
+    BOARD_NAME="Raspberry Pi Pico W"
+    MCU_NAME="RP2040"
+    MCU_FREQUENCY_HZ=125000000
+    
+    # WiFi specific definitions
+    WIFI_ENABLED=1
+    WEBSOCKET_ENABLED=1
+    CYW43_USE_SPI=1
+    PICO_CYW43_ARCH_THREADSAFE_BACKGROUND=1
+    
+    # Optional: Set country code (change as needed)
+    CYW43_DEFAULT_COUNTRY=CYW43_COUNTRY_USA
+)
 
 # =============================================================================
 # STDIO CONFIGURATION
 # =============================================================================
 
-# Enable USB output, disable UART for stdio
+# Enable USB output, disable UART for stdio (recommended for debugging)
 pico_enable_stdio_usb(${PROJECT_NAME} 1)
 pico_enable_stdio_uart(${PROJECT_NAME} 0)
+
+# Alternative: Enable both USB and UART for stdio
+# pico_enable_stdio_usb(${PROJECT_NAME} 1)
+# pico_enable_stdio_uart(${PROJECT_NAME} 1)
 
 # =============================================================================
 # OUTPUT FILES
@@ -176,7 +188,7 @@ pico_add_extra_outputs(${PROJECT_NAME})
 
 # Set binary name
 set_target_properties(${PROJECT_NAME} PROPERTIES
-    OUTPUT_NAME "diagnostic_rig_pico"
+    OUTPUT_NAME "diagnostic_rig_pico_w"
 )
 
 # =============================================================================
@@ -187,10 +199,12 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 message(STATUS "")
 message(STATUS "=== Pico W Build Configuration ===")
 message(STATUS "Project: ${PROJECT_NAME}")
+message(STATUS "Board Type: ${PICO_BOARD}")
 message(STATUS "Build Type: ${CMAKE_BUILD_TYPE}")
 message(STATUS "C++ Standard: ${CMAKE_CXX_STANDARD}")
 message(STATUS "Pico SDK Path: $ENV{PICO_SDK_PATH}")
-message(STATUS "WiFi Support: ${ENABLE_WIFI}")
+message(STATUS "WiFi Support: ENABLED")
+message(STATUS "WebSocket Support: ENABLED")
 
 # Count and display source files
 list(LENGTH PICO_PLATFORM_SOURCES PICO_SRC_COUNT)
@@ -204,7 +218,11 @@ message(STATUS "Total Sources: ${TOTAL_SRC_COUNT}")
 # Print include directories for debugging
 message(STATUS "Include Directories:")
 foreach(DIR ${INCLUDE_DIRS})
-    message(STATUS "  ${DIR}")
+    if(EXISTS ${DIR})
+        message(STATUS "  ✓ ${DIR}")
+    else()
+        message(STATUS "  ✗ ${DIR} (missing)")
+    endif()
 endforeach()
 
 if(COMMON_SRC_COUNT EQUAL 0)
@@ -224,14 +242,20 @@ option(VERBOSE_BUILD "Print all source files being compiled" OFF)
 if(VERBOSE_BUILD)
     message(STATUS "Platform source files:")
     foreach(SRC ${PICO_PLATFORM_SOURCES})
-        message(STATUS "  ${SRC}")
+        get_filename_component(SRC_NAME ${SRC} NAME)
+        message(STATUS "  ${SRC_NAME}")
     endforeach()
     
     message(STATUS "Common source files:")
     foreach(SRC ${COMMON_SOURCES})
-        message(STATUS "  ${SRC}")
+        get_filename_component(SRC_NAME ${SRC} NAME)
+        message(STATUS "  ${SRC_NAME}")
     endforeach()
 endif()
+
+# =============================================================================
+# CUSTOM TARGETS
+# =============================================================================
 
 # Custom target for cleaning build artifacts
 add_custom_target(clean-all
@@ -239,10 +263,57 @@ add_custom_target(clean-all
     COMMENT "Removing entire build directory"
 )
 
-# Custom target for flashing
+# Custom target for flashing (macOS)
 add_custom_target(flash
-    COMMAND ${CMAKE_COMMAND} -E echo "Put Pico in BOOTSEL mode, then run:"
-    COMMAND ${CMAKE_COMMAND} -E echo "cp ${CMAKE_BINARY_DIR}/${PROJECT_NAME}.uf2 /Volumes/RPI-RP2/"
+    COMMAND ${CMAKE_COMMAND} -E echo "=== Flashing Instructions ==="
+    COMMAND ${CMAKE_COMMAND} -E echo "1. Hold BOOTSEL button while connecting Pico W to USB"
+    COMMAND ${CMAKE_COMMAND} -E echo "2. Release BOOTSEL button"
+    COMMAND ${CMAKE_COMMAND} -E echo "3. Copy the UF2 file:"
+    COMMAND ${CMAKE_COMMAND} -E echo "   cp ${CMAKE_BINARY_DIR}/${PROJECT_NAME}.uf2 /Volumes/RPI-RP2/"
+    COMMAND ${CMAKE_COMMAND} -E echo "   OR drag ${CMAKE_BINARY_DIR}/${PROJECT_NAME}.uf2 to RPI-RP2 drive"
+    COMMAND ${CMAKE_COMMAND} -E echo "============================"
     DEPENDS ${PROJECT_NAME}
-    COMMENT "Instructions for flashing firmware"
+    COMMENT "Instructions for flashing firmware to Pico W"
 )
+
+# Custom target for showing WiFi build info
+add_custom_target(wifi-info
+    COMMAND ${CMAKE_COMMAND} -E echo "=== WiFi Build Information ==="
+    COMMAND ${CMAKE_COMMAND} -E echo "Board: Raspberry Pi Pico W"
+    COMMAND ${CMAKE_COMMAND} -E echo "WiFi Chip: CYW43439"
+    COMMAND ${CMAKE_COMMAND} -E echo "WiFi Support: Enabled"
+    COMMAND ${CMAKE_COMMAND} -E echo "lwIP Stack: Enabled"
+    COMMAND ${CMAKE_COMMAND} -E echo "Background WiFi: Enabled"
+    COMMAND ${CMAKE_COMMAND} -E echo "=============================="
+    COMMENT "Display WiFi configuration information"
+)
+
+# =============================================================================
+# VALIDATION CHECKS
+# =============================================================================
+
+# Check if PICO_SDK_PATH is set
+if(NOT DEFINED ENV{PICO_SDK_PATH})
+    message(FATAL_ERROR "PICO_SDK_PATH environment variable is not set!")
+endif()
+
+# Verify Pico SDK path exists
+if(NOT EXISTS $ENV{PICO_SDK_PATH})
+    message(FATAL_ERROR "PICO_SDK_PATH does not exist: $ENV{PICO_SDK_PATH}")
+endif()
+
+# Check for required platform files
+set(REQUIRED_PLATFORM_FILES
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/board_config.h"
+)
+
+foreach(FILE ${REQUIRED_PLATFORM_FILES})
+    if(NOT EXISTS ${FILE})
+        message(WARNING "Required platform file missing: ${FILE}")
+    endif()
+endforeach()
+
+# Final status
+message(STATUS "CMake configuration completed successfully!")
+message(STATUS "Run 'make' or 'ninja' to build the project.")
