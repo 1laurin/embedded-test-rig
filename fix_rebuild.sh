@@ -1,3 +1,18 @@
+#!/bin/bash
+
+# Fix the main.cpp linker issues and ensure clean build
+set -e
+
+echo "🔧 Fixing main.cpp and ensuring clean rebuild..."
+
+# 1. Fix unused parameter warnings first
+echo "📝 Fixing unused parameter warnings..."
+sed -i '' 's/input_event_t \*event)/input_event_t *event __attribute__((unused)))/' src/ui/input_handler.cpp
+sed -i '' 's/button_id_t button_id)/button_id_t button_id __attribute__((unused)))/' src/ui/input_handler.cpp
+
+# 2. Create a completely new, working main.cpp that properly links with our functions
+echo "📝 Creating new main.cpp with correct function calls..."
+cat > platforms/pico_w/src/main.cpp << 'EOF'
 /**
  * @file main.cpp
  * @brief Main application entry point for Raspberry Pi Pico W
@@ -168,3 +183,45 @@ static void cleanup_and_exit(void)
     printf("  Multi-Channel Diagnostic Test Rig - Shutdown Complete\n");
     printf("=======================================================\n");
 }
+EOF
+
+# 3. Force a complete clean rebuild
+echo "🧹 Performing clean rebuild..."
+cd build/pico_w
+
+# Remove all build artifacts
+rm -rf *
+
+# Reconfigure CMake
+echo "🔧 Reconfiguring CMake..."
+cmake \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DPICO_BOARD=pico_w \
+    -DPICO_PLATFORM=rp2040 \
+    ../../platforms/pico_w
+
+# Build with verbose output to see exactly what's happening
+echo "🔨 Building with verbose output..."
+make VERBOSE=1 -j4
+
+if [ $? -eq 0 ]; then
+    echo ""
+    echo "🎉 BUILD SUCCESSFUL! 🎉"
+    echo ""
+    echo "📦 Generated files:"
+    ls -la *.uf2 *.elf 2>/dev/null || echo "No output files found"
+    echo ""
+    echo "🚀 To flash to Pico W:"
+    echo "1. Hold BOOTSEL button while connecting Pico W to USB"
+    echo "2. Copy diagnostic_rig_pico.uf2 to the RPI-RP2 drive"
+    echo "3. Pico W will reboot and run your firmware!"
+    echo ""
+    echo "📟 To monitor output:"
+    echo "   ./monitor.sh pico"
+else
+    echo ""
+    echo "❌ Build failed. Let's check what's still missing..."
+    echo ""
+    echo "🔍 Checking for remaining undefined references..."
+    make 2>&1 | grep "undefined reference" | head -5
+fi

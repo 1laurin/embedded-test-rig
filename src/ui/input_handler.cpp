@@ -61,7 +61,7 @@ void handle_user_input(void)
     }
 }
 
-bool get_next_input_event(input_event_t *event)
+bool get_next_input_event(input_event_t *event __attribute__((unused)))
 {
     // Stub implementation
     return false;
@@ -112,22 +112,22 @@ void register_emergency_stop_callback(void (*callback)(void))
     printf("[INPUT] Emergency stop callback registered\n");
 }
 
-bool get_button_state(button_id_t button_id)
+bool get_button_state(button_id_t button_id __attribute__((unused)))
 {
     return false; // Stub
 }
 
-bool was_button_pressed(button_id_t button_id)
+bool was_button_pressed(button_id_t button_id __attribute__((unused)))
 {
     return false; // Stub
 }
 
-bool was_button_released(button_id_t button_id)
+bool was_button_released(button_id_t button_id __attribute__((unused)))
 {
     return false; // Stub
 }
 
-uint32_t get_button_press_duration(button_id_t button_id)
+uint32_t get_button_press_duration(button_id_t button_id __attribute__((unused)))
 {
     return 0; // Stub
 }
