@@ -3,10 +3,10 @@
  * @brief User input handling implementation - COMPLETE VERSION
  */
 
-#include "input_handler.h"
-#include "diagnostics_engine.h"
-#include "hal_interface.h"
-#include "board_config.h"
+#include "../ui/input_handler.h"
+#include "../monitoring/diagnostics_engine.h"
+#include "../utils/hal_interface.h"
+#include "../include/board_config.h"
 #include <stdio.h>
 #include <string.h>
 

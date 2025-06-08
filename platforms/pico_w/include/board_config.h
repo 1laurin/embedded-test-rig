@@ -46,6 +46,7 @@ extern "C"
 #define BOARD_HAS_CAN 0
 #define BOARD_HAS_DAC 0
 
+
     // =============================================================================
     // SYSTEM CONFIGURATION
     // =============================================================================
@@ -197,7 +198,7 @@ extern "C"
 #define WIFI_HOSTNAME "pico-diagnostic-rig"
 #define WIFI_CONNECT_TIMEOUT_MS 30000      // 30 seconds
 #define WIFI_RECONNECT_DELAY_MS 5000       // 5 seconds
-#define WIFI_MAX_RETRY_COUNT 10            // Maximum connection retries
+#define WIFI_MAX_RETRY_COUNT 5            // Maximum connection retries
 #define WIFI_STATUS_CHECK_INTERVAL_MS 1000 // Check connection status every 1s
 
 // Default WiFi credentials (change these for your network)
@@ -213,7 +214,7 @@ extern "C"
 
 // WiFi LED Status (shares with built-in LED on Pico W)
 #define WIFI_LED_ENABLED 1
-#define WIFI_LED_BLINK_CONNECTED_MS 2000 // Slow blink when connected
+#define WIFI_LED_BLINK_CONNECTED_MS 1000 // Slow blink when connected
 #define WIFI_LED_BLINK_CONNECTING_MS 200 // Fast blink when connecting
 #define WIFI_LED_SOLID_DISCONNECTED 0    // Off when disconnected
 
@@ -464,3 +465,15 @@ extern "C"
 #endif
 
 #endif // PICO_W_BOARD_CONFIG_H
+// =============================================================================
+// GPIO STATE CONSTANTS (Added during consolidation)
+// =============================================================================
+
+#ifndef GPIO_STATE_HIGH
+#define GPIO_STATE_HIGH     1
+#endif
+
+#ifndef GPIO_STATE_LOW
+#define GPIO_STATE_LOW      0
+#endif
+

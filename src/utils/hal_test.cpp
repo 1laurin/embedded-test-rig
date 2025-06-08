@@ -3,8 +3,8 @@
  * @brief HAL subsystem test implementation
  */
 
-#include "hal_test.h"
-#include "hal_interface.h"
+#include "../utils/hal_test.h"
+#include "../utils/hal_interface.h"
 #include <stdio.h>
 
 bool test_hal_subsystems(void) {

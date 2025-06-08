@@ -3,8 +3,8 @@
  * @brief Simplified WiFi manager implementation for Raspberry Pi Pico W
  */
 
-#include "wifi_manager.h"
-#include "board_config.h"
+#include "../include/wifi_manager.h"
+#include "../include/board_config.h"
 
 // Pico W WiFi includes
 #include "pico/cyw43_arch.h"

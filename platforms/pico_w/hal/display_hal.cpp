@@ -9,8 +9,8 @@
  * @date 2025
  */
 
-#include "hal_interface.h"
-#include "board_config.h"
+#include "../utils/hal_interface.h"
+#include "../include/board_config.h"
 #include "pico/stdlib.h"
 #include <stdio.h>
 #include <string.h>

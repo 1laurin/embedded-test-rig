@@ -1,0 +1,23 @@
+scope_rig/
+├── src/
+│   ├── core/           # System initialization and main loop
+│   ├── ui/             # Input handling
+│   ├── system/         # Safety monitoring
+│   ├── monitoring/     # Diagnostics engine
+│   ├── utils/          # Utilities and HAL testing
+│   └── demo/           # Demo code
+├── include/            # Common headers
+├── platforms/
+│   ├── pico_w/
+│   │   ├── src/        # Platform-specific sources (main.cpp, websocket, wifi)
+│   │   ├── include/    # Platform-specific headers
+│   │   ├── hal/        # Hardware abstraction layer
+│   │   └── CMakeLists.txt
+│   └── nucleo_f446re/  # Future STM32 target
+├── web/                # Web interface simulation
+├── tests/
+│   ├── unit/
+│   ├── integration/
+│   └── mocks/
+├── scripts/            # Build and utility scripts
+└── docs/               # Documentation

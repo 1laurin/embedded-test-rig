@@ -9,9 +9,9 @@
  * @date 2025
  */
 
-#include "safety_monitor.h"
-#include "hal_interface.h"
-#include "board_config.h"
+#include "../system/safety_monitor.h"
+#include "../utils/hal_interface.h"
+#include "../include/board_config.h"
 #include <stdio.h>
 #include <string.h>
 

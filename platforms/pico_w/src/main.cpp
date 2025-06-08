@@ -9,17 +9,17 @@
  * @date 2025
  */
 
-#include "system_init.h"
-#include "system_loop.h"
-#include "system_info.h"
-#include "input_handler.h"
-#include "safety_monitor.h"
-#include "hal_demo.h"
-#include "hal_test.h"
-#include "wifi_manager.h"
-#include "websocket_server.h"
-#include "diagnostics_engine.h"
-#include "board_config.h"
+#include "../system/system_init.h"
+#include "../system/system_loop.h"
+#include "../system/system_info.h"
+#include "../ui/input_handler.h"
+#include "../system/safety_monitor.h"
+#include "../utils/hal_demo.h"
+#include "../utils/hal_test.h"
+#include "../include/wifi_manager.h"
+#include "../include/websocket_server.h"
+#include "../monitoring/diagnostics_engine.h"
+#include "../include/board_config.h"
 
 // Pico W specific includes
 #include "pico/cyw43_arch.h"
@@ -28,6 +28,81 @@
 
 #include <stdio.h>
 #include <string.h>
+
+// =============================================================================
+// MISSING CONSTANTS DEFINITIONS
+// =============================================================================
+
+// WiFi LED timing constants
+#ifndef WIFI_LED_BLINK_CONNECTED_MS
+#define WIFI_LED_BLINK_CONNECTED_MS 1000
+#endif
+
+#ifndef WIFI_LED_BLINK_CONNECTING_MS
+#define WIFI_LED_BLINK_CONNECTING_MS 200
+#endif
+
+// WiFi retry configuration
+#ifndef WIFI_MAX_RETRY_COUNT
+#define WIFI_MAX_RETRY_COUNT 5
+#endif
+
+// GPIO state definitions
+#ifndef GPIO_STATE_HIGH
+#define GPIO_STATE_HIGH 1
+#endif
+
+#ifndef GPIO_STATE_LOW
+#define GPIO_STATE_LOW 0
+#endif
+
+// Status update interval
+#ifndef STATUS_UPDATE_INTERVAL_MS
+#define STATUS_UPDATE_INTERVAL_MS 5000
+#endif
+
+// WiFi configuration buffer sizes
+#ifndef WIFI_SSID_MAX_LENGTH
+#define WIFI_SSID_MAX_LENGTH 32
+#endif
+
+#ifndef WIFI_PASSWORD_MAX_LENGTH
+#define WIFI_PASSWORD_MAX_LENGTH 64
+#endif
+
+// WiFi hostname
+#ifndef WIFI_HOSTNAME
+#define WIFI_HOSTNAME "pico-diagnostic-rig"
+#endif
+
+// WiFi reconnect delay
+#ifndef WIFI_RECONNECT_DELAY_MS
+#define WIFI_RECONNECT_DELAY_MS 5000
+#endif
+
+// Number of diagnostic channels
+#ifndef NUM_DIAGNOSTIC_CHANNELS
+#define NUM_DIAGNOSTIC_CHANNELS 4
+#endif
+
+// Channel voltage and current ranges
+#ifndef CHANNEL_VOLTAGE_RANGE
+#define CHANNEL_VOLTAGE_RANGE 30.0f
+#endif
+
+#ifndef CHANNEL_CURRENT_RANGE
+#define CHANNEL_CURRENT_RANGE 10.0f
+#endif
+
+// ADC to voltage conversion macro
+#ifndef ADC_TO_VOLTAGE
+#define ADC_TO_VOLTAGE(adc_val) ((float)(adc_val) * 3.3f / 4095.0f)
+#endif
+
+// ADC channel for current sensing
+#ifndef ADC_CH3_CURRENT
+#define ADC_CH3_CURRENT 2
+#endif
 
 // =============================================================================
 // WIFI CREDENTIALS (Change these for your network)
@@ -55,7 +130,6 @@ static void setup_emergency_stop(void);
 static void system_emergency_stop_handler(void);
 static void cleanup_and_exit(void);
 static bool setup_wifi_connection(void);
-// Forward declarations with simplified types
 static void wifi_event_handler_simplified(void);
 static bool websocket_command_handler(const char *command, const char *params, int client_id);
 static void websocket_client_handler(int client_id, bool connected, const char *client_ip);
@@ -293,6 +367,8 @@ static bool setup_wifi_connection(void)
         if (wifi_connected)
         {
             printf("[WIFI] Connection successful!\n");
+            // Initialize WebSocket server after successful WiFi connection
+            wifi_event_handler_simplified();
         }
         else
         {
@@ -333,11 +409,12 @@ static void configure_wifi_via_uart(void)
  */
 static void handle_uart_wifi_commands(void)
 {
+    char uart_command[256];
     // This function would be called from the UART handler
     // Implementation depends on your UART command parsing system
 
     // Example implementation (you'd integrate this with your existing UART handler):
-    
+
     if (strncmp(uart_command, "WIFI_CONNECT", 12) == 0)
     {
         char ssid[WIFI_SSID_MAX_LENGTH];
@@ -391,7 +468,6 @@ static void handle_uart_wifi_commands(void)
         wifi_disconnect();
         printf("[WIFI] Disconnected\n");
     }
-    
 }
 
 /**
@@ -399,7 +475,7 @@ static void handle_uart_wifi_commands(void)
  */
 static void wifi_event_handler_simplified(void)
 {
-    // Simplified event handling - just check if we're connected
+    // Check if we're connected and handle WebSocket initialization
     if (wifi_is_connected())
     {
         printf("[WIFI] WiFi connection detected\n");
@@ -440,65 +516,14 @@ static void wifi_event_handler_simplified(void)
         {
             websocket_send_log("warn", "WiFi", "Disconnected from network");
         }
+
+        // Attempt reconnection if we have credentials
+        if (USE_HARDCODED_WIFI || wifi_configured_via_uart)
+        {
+            printf("[WIFI] Attempting reconnection in %d seconds...\n", WIFI_RECONNECT_DELAY_MS / 1000);
+            // Note: Actual reconnection logic would be handled by the WiFi manager
+        }
     }
-}
-register_command_callback(websocket_command_handler);
-websocket_register_client_callback(websocket_client_handler);
-
-printf("[WEBSOCKET] WebSocket server started on port %d\n", NET_WEBSOCKET_PORT);
-websocket_send_log("info", "WebSocket", "Server started and ready for connections");
-}
-else
-{
-    printf("[WEBSOCKET] Failed to start WebSocket server\n");
-}
-}
-
-if (websocket_setup_complete)
-{
-    websocket_send_log("info", "WiFi", "Successfully connected to network");
-
-    // Send initial system status
-    send_system_status_update();
-}
-break;
-
-case WIFI_EVENT_DISCONNECTED:
-printf("[WIFI] Disconnected from WiFi\n");
-if (websocket_setup_complete)
-{
-    websocket_send_log("warn", "WiFi", "Disconnected from network");
-}
-
-// Attempt reconnection if we have credentials
-if (USE_HARDCODED_WIFI || wifi_configured_via_uart)
-{
-    printf("[WIFI] Attempting reconnection in %d seconds...\n", WIFI_RECONNECT_DELAY_MS / 1000);
-    // Note: Actual reconnection logic would be handled by the WiFi manager
-}
-break;
-
-case WIFI_EVENT_CONNECTION_FAILED:
-wifi_connection_attempts++;
-printf("[WIFI] Connection failed (attempt %lu)\n", wifi_connection_attempts);
-if (websocket_setup_complete)
-{
-    websocket_send_log("error", "WiFi", "Connection failed");
-}
-
-if (wifi_connection_attempts < WIFI_MAX_RETRY_COUNT)
-{
-    printf("[WIFI] Will retry connection...\n");
-}
-else
-{
-    printf("[WIFI] Maximum retry attempts reached\n");
-}
-break;
-
-default:
-break;
-}
 }
 
 /**
@@ -580,7 +605,7 @@ static void update_wifi_led_status(void)
 
     if (wifi_is_connected())
     {
-        // Slow blink when connected (every 2 seconds)
+        // Slow blink when connected
         if (current_time - last_wifi_led_update >= WIFI_LED_BLINK_CONNECTED_MS)
         {
             wifi_led_state = !wifi_led_state;
@@ -590,7 +615,7 @@ static void update_wifi_led_status(void)
     }
     else if (wifi_connection_attempts > 0)
     {
-        // Fast blink when trying to connect (every 200ms)
+        // Fast blink when trying to connect
         if (current_time - last_wifi_led_update >= WIFI_LED_BLINK_CONNECTING_MS)
         {
             wifi_led_state = !wifi_led_state;
@@ -614,13 +639,12 @@ static void send_system_status_update(void)
     if (!websocket_setup_complete)
         return;
 
-    // Create system status message (simplified - remove missing functions)
+    // Create system status message
     char status_msg[512];
     snprintf(status_msg, sizeof(status_msg),
              "System Status: Online | WiFi: %s | Uptime: %lu ms",
              wifi_is_connected() ? "Connected" : "Disconnected",
-             to_ms_since_boot(get_absolute_time()) // Use Pico SDK time function
-    );
+             to_ms_since_boot(get_absolute_time()));
 
     websocket_send_log("info", "Status", status_msg);
 }
@@ -682,7 +706,7 @@ static void send_channel_updates(void)
         float current = 0.0f;
         bool channel_enabled = false;
 
-        // Check if channel is enabled (simplified - use direct GPIO read)
+        // Check if channel is enabled (using correct GPIO_STATE_HIGH constant)
         switch (channel)
         {
         case 1:
@@ -744,7 +768,7 @@ static void send_channel_updates(void)
             }
         }
 
-        // Send channel data via WebSocket (use the simplified 3-parameter version)
+        // Send channel data via WebSocket
         websocket_send_channel_data(channel, voltage, current);
     }
 }
@@ -754,7 +778,7 @@ static void send_channel_updates(void)
  */
 static void web_integration_update(void)
 {
-    uint32_t current_time = to_ms_since_boot(get_absolute_time()); // Use Pico SDK time
+    uint32_t current_time = to_ms_since_boot(get_absolute_time());
 
     // Update WiFi manager
     if (wifi_setup_complete)
@@ -878,38 +902,3 @@ void integrate_web_updates_in_main_loop(void)
     // Call this function from within your main loop
     web_integration_update();
 }
-
-// Example of how to modify your existing main loop:
-/*
-void run_main_loop(void)
-{
-    printf("[LOOP] Starting main application loop...\n");
-
-    uint32_t loop_counter = 0;
-    bool system_stop_requested = false;
-
-    while (!system_stop_requested)
-    {
-        loop_counter++;
-
-        // Existing loop functionality
-        handle_user_input();
-        check_system_safety();
-
-        // Add web integration updates
-        integrate_web_updates_in_main_loop();
-
-        // Rest of your existing loop...
-        if (loop_counter % 1000 == 0)
-        {
-            hal_gpio_toggle(LED_STATUS_PIN);
-            printf("[LOOP] Heartbeat: %lu loops\n", loop_counter);
-        }
-
-        system_stop_requested = is_system_stop_requested();
-        hal_delay_ms(MAIN_LOOP_DELAY_MS);
-    }
-
-    printf("[LOOP] Main loop exiting after %lu iterations\n", loop_counter);
-}
-*/

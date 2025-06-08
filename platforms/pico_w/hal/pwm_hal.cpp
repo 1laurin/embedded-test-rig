@@ -3,7 +3,7 @@
  * @brief PWM HAL stub for Pico W
  */
 
-#include "hal_interface.h"
+#include "../utils/hal_interface.h"
 #include <stdio.h>
 
 hal_status_t hal_pwm_init(uint8_t pwm_id, uint32_t frequency_hz) {

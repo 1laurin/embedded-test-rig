@@ -3,12 +3,12 @@
  * @brief Main application loop implementation - COMPLETE VERSION
  */
 
-#include "system_loop.h"
-#include "input_handler.h"
-#include "safety_monitor.h"
-#include "diagnostics_engine.h"
-#include "hal_interface.h"
-#include "board_config.h"
+#include "../system/system_loop.h"
+#include "../ui/input_handler.h"
+#include "../system/safety_monitor.h"
+#include "../monitoring/diagnostics_engine.h"
+#include "../utils/hal_interface.h"
+#include "../include/board_config.h"
 #include <stdio.h>
 
 // =============================================================================

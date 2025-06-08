@@ -3,7 +3,7 @@
  * @brief SPI HAL stub for Pico W
  */
 
-#include "hal_interface.h"
+#include "../utils/hal_interface.h"
 #include <stdio.h>
 
 hal_status_t hal_spi_init(uint8_t spi_id, const spi_config_t *config) {

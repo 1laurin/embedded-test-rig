@@ -3,8 +3,8 @@
  * @brief HAL demonstration implementation
  */
 
-#include "hal_demo.h"
-#include "hal_interface.h"
+#include "../utils/hal_demo.h"
+#include "../utils/hal_interface.h"
 #include <stdio.h>
 #include <string.h>  // Added for strlen
 

@@ -3,9 +3,9 @@
  * @brief Diagnostics engine implementation with all required functions
  */
 
-#include "diagnostics_engine.h"
-#include "hal_interface.h"
-#include "board_config.h"
+#include "../monitoring/diagnostics_engine.h"
+#include "../utils/hal_interface.h"
+#include "../include/board_config.h"
 #include <stdio.h>
 
 static bool diagnostics_initialized = false;

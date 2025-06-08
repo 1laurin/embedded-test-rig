@@ -5,8 +5,8 @@
  * This is a simplified version that works with lwIP and focuses on basic functionality.
  */
 
-#include "websocket_server.h"
-#include "board_config.h"
+#include "../include/websocket_server.h"
+#include "../include/board_config.h"
 
 // lwIP includes for networking
 #include "lwip/tcp.h"

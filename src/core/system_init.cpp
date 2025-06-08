@@ -3,9 +3,9 @@
  * @brief System initialization implementation for multi-channel diagnostic test rig
  */
 
-#include "system_init.h"
-#include "diagnostics_engine.h"
-#include "board_config.h"
+#include "../system/system_init.h"
+#include "../monitoring/diagnostics_engine.h"
+#include "../include/board_config.h"
 #include <stdio.h>
 #include <string.h>
 

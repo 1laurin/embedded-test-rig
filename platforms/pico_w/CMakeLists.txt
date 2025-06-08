@@ -1,133 +1,122 @@
-cmake_minimum_required(VERSION 3.13)
+# Pico W CMakeLists.txt with proper WiFi and WebSocket configuration
 
-# IMPORTANT: Set board type BEFORE including pico_sdk_import.cmake
-set(PICO_BOARD pico_w)
+cmake_minimum_required(VERSION 3.13)
 
 # Include the Pico SDK
 include($ENV{PICO_SDK_PATH}/external/pico_sdk_import.cmake)
 
-# Set project name and version
-project(diagnostic_rig_pico VERSION 1.0.0 LANGUAGES C CXX ASM)
+# Project name
+project(diagnostic_rig_pico C CXX ASM)
 
-# Set C/C++ standards
+# Set standards
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Initialize the Pico SDK
 pico_sdk_init()
 
-# Add compiler options
-add_compile_options(-Wall -Wextra)
-
-# Define project root for easier path management
-set(PROJECT_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/../..)
-
 # =============================================================================
-# INCLUDE DIRECTORIES - COMPREHENSIVE LIST
+# CRITICAL: Memory management configuration for WiFi
 # =============================================================================
 
-# Add all include directories that the project needs
-set(INCLUDE_DIRS
-    # Project root includes
-    ${PROJECT_ROOT}/include
-    ${PROJECT_ROOT}/include/core
-    ${PROJECT_ROOT}/include/ui
-    ${PROJECT_ROOT}/include/system
-    ${PROJECT_ROOT}/include/demo
-    ${PROJECT_ROOT}/include/utils
-    ${PROJECT_ROOT}/include/common
-    ${PROJECT_ROOT}/include/drivers
-    ${PROJECT_ROOT}/include/logging
-    ${PROJECT_ROOT}/include/monitoring
-    ${PROJECT_ROOT}/include/protocols
+# IMPORTANT: Set memory allocator BEFORE any WiFi libraries
+# This fixes the MEM_LIBC_MALLOC incompatibility error
+set(PICO_LWIP_CONFIG_FILE ${CMAKE_CURRENT_LIST_DIR}/lwipopts.h CACHE INTERNAL "")
+
+# Add compile definitions for memory management
+add_compile_definitions(
+    # Memory management - CRITICAL for WiFi compatibility
+    MEMP_NUM_TCP_PCB=10
+    MEMP_NUM_TCP_PCB_LISTEN=8
+    MEMP_NUM_UDP_PCB=4
+    MEMP_NUM_SYS_TIMEOUT=10
+    PBUF_POOL_SIZE=24
+    TCP_MSS=1460
+    TCP_WND=4*TCP_MSS
+    TCP_SND_BUF=4*TCP_MSS
     
-    # Platform common
-    ${PROJECT_ROOT}/platforms/common
+    # Disable incompatible memory allocator
+    MEM_LIBC_MALLOC=0
+    MEMP_MEM_MALLOC=0
     
-    # Platform specific
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
-    ${CMAKE_CURRENT_SOURCE_DIR}
-    
-    # Source directories (for headers next to sources)
-    ${PROJECT_ROOT}/src
-    ${PROJECT_ROOT}/src/core
-    ${PROJECT_ROOT}/src/ui
-    ${PROJECT_ROOT}/src/system
-    ${PROJECT_ROOT}/src/demo
-    ${PROJECT_ROOT}/src/utils
-    ${PROJECT_ROOT}/src/monitoring
+    # Enable proper lwIP memory management
+    MEM_ALIGNMENT=4
+    MEM_SIZE=4000
 )
 
-# Apply include directories globally
-include_directories(${INCLUDE_DIRS})
-
 # =============================================================================
-# SOURCE FILE COLLECTION
+# Source file collection
 # =============================================================================
 
-# Platform-specific Pico W sources
+# Collect all source files
+file(GLOB COMMON_SOURCES
+    "${CMAKE_CURRENT_SOURCE_DIR}/../../src/core/*.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../../src/core/*.c"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../../src/ui/*.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../../src/ui/*.c"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../../src/system/*.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../../src/system/*.c"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../../src/monitoring/*.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../../src/monitoring/*.c"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../../src/utils/*.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../../src/utils/*.c"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../../src/demo/*.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../../src/demo/*.c"
+)
+
+# Platform specific sources
 file(GLOB PICO_PLATFORM_SOURCES
     "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/*.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/hal/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/hal/*.c"
+    # Add WebSocket integration sources
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/websocket_server.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/wifi_manager.cpp"
 )
 
-# Common source files - only include non-empty files
-set(COMMON_SOURCE_DIRS
-    "${PROJECT_ROOT}/src/core"
-    "${PROJECT_ROOT}/src/ui"
-    "${PROJECT_ROOT}/src/system"
-    "${PROJECT_ROOT}/src/demo"
-    "${PROJECT_ROOT}/src/utils"
-    "${PROJECT_ROOT}/src/monitoring"
+# =============================================================================
+# Include directories
+# =============================================================================
+
+set(INCLUDE_DIRS
+    # Common includes
+    "${CMAKE_CURRENT_SOURCE_DIR}/../../include"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../../src/core"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../../src/ui"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../../src/system"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../../src/monitoring"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../../src/utils"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../../src/demo"
+    
+    # Platform specific includes
+    "${CMAKE_CURRENT_SOURCE_DIR}/include"
+    "${CMAKE_CURRENT_SOURCE_DIR}/hal"
 )
 
-set(COMMON_SOURCES "")
-foreach(DIR ${COMMON_SOURCE_DIRS})
-    if(EXISTS ${DIR})
-        file(GLOB DIR_SOURCES "${DIR}/*.cpp" "${DIR}/*.c")
-        foreach(SRC ${DIR_SOURCES})
-            # Only include files that are not empty (have size > 0)
-            file(SIZE ${SRC} SRC_SIZE)
-            if(SRC_SIZE GREATER 0)
-                list(APPEND COMMON_SOURCES ${SRC})
-            endif()
-        endforeach()
-    endif()
-endforeach()
-
 # =============================================================================
-# EXECUTABLE CREATION
+# Create executable
 # =============================================================================
 
-# Create the main executable
 add_executable(${PROJECT_NAME}
-    ${PICO_PLATFORM_SOURCES}
     ${COMMON_SOURCES}
+    ${PICO_PLATFORM_SOURCES}
 )
 
-# =============================================================================
-# TARGET CONFIGURATION
-# =============================================================================
-
-# Set target-specific include directories (in addition to global ones)
+# Set include directories
 target_include_directories(${PROJECT_NAME} PRIVATE
     ${INCLUDE_DIRS}
 )
 
-# Set target properties
-target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_17)
-
 # =============================================================================
-# LIBRARY LINKING - UNIFIED SECTION
+# Link libraries (ORDER MATTERS for WiFi)
 # =============================================================================
 
-# Link all required libraries (including WiFi)
 target_link_libraries(${PROJECT_NAME}
-    # Core Pico SDK libraries
+    # Core Pico libraries
     pico_stdlib
+    
+    # Hardware libraries
     hardware_gpio
     hardware_uart
     hardware_adc
@@ -139,17 +128,16 @@ target_link_libraries(${PROJECT_NAME}
     hardware_clocks
     hardware_pio
     
-    # WiFi libraries for Pico W
+    # WiFi and networking libraries (specific order required)
     pico_cyw43_arch_lwip_threadsafe_background
     pico_lwip
     pico_lwip_http
 )
 
 # =============================================================================
-# COMPILE DEFINITIONS - UNIFIED SECTION
+# Compile definitions
 # =============================================================================
 
-# Add all compile definitions
 target_compile_definitions(${PROJECT_NAME} PRIVATE
     # Board identification
     PICO_BOARD_NAME="pico_w"
@@ -157,166 +145,81 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE
     MCU_NAME="RP2040"
     MCU_FREQUENCY_HZ=125000000
     
-    # WiFi specific definitions
+    # Enable WiFi and networking features
     WIFI_ENABLED=1
     WEBSOCKET_ENABLED=1
     CYW43_USE_SPI=1
+    
+    # lwIP configuration
     PICO_CYW43_ARCH_THREADSAFE_BACKGROUND=1
+    CYW43_LWIP=1
     
-    # lwIP configuration path
-    LWIP_OPTTEST_FILE=1
-    
-    # Optional: Set country code (change as needed)
-    CYW43_DEFAULT_COUNTRY=CYW43_COUNTRY_USA
+    # Disable stdio USB for better stability (optional)
+    # PICO_STDIO_USB=0
+    # PICO_STDIO_UART=1
 )
 
 # =============================================================================
-# STDIO CONFIGURATION
+# Additional Pico SDK configurations
 # =============================================================================
 
-# Enable USB output, disable UART for stdio (recommended for debugging)
+# Enable USB output, UART output
 pico_enable_stdio_usb(${PROJECT_NAME} 1)
-pico_enable_stdio_uart(${PROJECT_NAME} 0)
-
-# Alternative: Enable both USB and UART for stdio
-# pico_enable_stdio_usb(${PROJECT_NAME} 1)
-# pico_enable_stdio_uart(${PROJECT_NAME} 1)
-
-# =============================================================================
-# OUTPUT FILES
-# =============================================================================
+pico_enable_stdio_uart(${PROJECT_NAME} 1)
 
 # Create map/bin/hex/uf2 files
 pico_add_extra_outputs(${PROJECT_NAME})
 
-# Set binary name
-set_target_properties(${PROJECT_NAME} PROPERTIES
-    OUTPUT_NAME "diagnostic_rig_pico_w"
+# Set up compiler flags for optimization
+target_compile_options(${PROJECT_NAME} PRIVATE
+    -Wall
+    -Wextra
+    -Wno-unused-parameter
+    -O2
 )
 
 # =============================================================================
-# BUILD INFORMATION
+# Custom lwIP configuration (create lwipopts.h)
 # =============================================================================
 
-# Print build configuration
-message(STATUS "")
-message(STATUS "=== Pico W Build Configuration ===")
-message(STATUS "Project: ${PROJECT_NAME}")
-message(STATUS "Board Type: ${PICO_BOARD}")
-message(STATUS "Build Type: ${CMAKE_BUILD_TYPE}")
-message(STATUS "C++ Standard: ${CMAKE_CXX_STANDARD}")
-message(STATUS "Pico SDK Path: $ENV{PICO_SDK_PATH}")
-message(STATUS "WiFi Support: ENABLED")
-message(STATUS "WebSocket Support: ENABLED")
+# Create a simple lwipopts.h if it doesn't exist
+if(NOT EXISTS "${CMAKE_CURRENT_LIST_DIR}/lwipopts.h")
+    file(WRITE "${CMAKE_CURRENT_LIST_DIR}/lwipopts.h"
+"#ifndef _LWIPOPTS_H
+#define _LWIPOPTS_H
 
-# Count and display source files
-list(LENGTH PICO_PLATFORM_SOURCES PICO_SRC_COUNT)
-list(LENGTH COMMON_SOURCES COMMON_SRC_COUNT)
-math(EXPR TOTAL_SRC_COUNT "${PICO_SRC_COUNT} + ${COMMON_SRC_COUNT}")
+// Platform specific configuration for Pico W
+#include \"lwipopts_examples_common.h\"
 
-message(STATUS "Platform Sources: ${PICO_SRC_COUNT}")
-message(STATUS "Common Sources: ${COMMON_SRC_COUNT}")
-message(STATUS "Total Sources: ${TOTAL_SRC_COUNT}")
+// Memory management - CRITICAL settings
+#define MEM_LIBC_MALLOC 0
+#define MEMP_MEM_MALLOC 0
+#define MEM_ALIGNMENT 4
+#define MEM_SIZE 4000
 
-# Print include directories for debugging
-message(STATUS "Include Directories:")
-foreach(DIR ${INCLUDE_DIRS})
-    if(EXISTS ${DIR})
-        message(STATUS "  ✓ ${DIR}")
-    else()
-        message(STATUS "  ✗ ${DIR} (missing)")
-    endif()
-endforeach()
+// TCP/IP settings
+#define MEMP_NUM_TCP_PCB 10
+#define MEMP_NUM_TCP_PCB_LISTEN 8
+#define MEMP_NUM_UDP_PCB 4
+#define PBUF_POOL_SIZE 24
+#define TCP_MSS 1460
+#define TCP_WND (4 * TCP_MSS)
+#define TCP_SND_BUF (4 * TCP_MSS)
 
-if(COMMON_SRC_COUNT EQUAL 0)
-    message(WARNING "No common source files found! Most functionality will be missing.")
-    message(STATUS "This is normal for a minimal build.")
+// Enable necessary protocols
+#define LWIP_TCP 1
+#define LWIP_UDP 1
+#define LWIP_DHCP 1
+#define LWIP_DNS 1
+
+// WebSocket support
+#define LWIP_HTTPD 1
+#define LWIP_HTTPD_CGI 1
+#define LWIP_HTTPD_SSI 1
+
+#endif /* _LWIPOPTS_H */
+")
 endif()
 
-message(STATUS "================================")
-message(STATUS "")
-
-# =============================================================================
-# DEBUGGING HELPERS
-# =============================================================================
-
-# Option to print all included files
-option(VERBOSE_BUILD "Print all source files being compiled" OFF)
-if(VERBOSE_BUILD)
-    message(STATUS "Platform source files:")
-    foreach(SRC ${PICO_PLATFORM_SOURCES})
-        get_filename_component(SRC_NAME ${SRC} NAME)
-        message(STATUS "  ${SRC_NAME}")
-    endforeach()
-    
-    message(STATUS "Common source files:")
-    foreach(SRC ${COMMON_SOURCES})
-        get_filename_component(SRC_NAME ${SRC} NAME)
-        message(STATUS "  ${SRC_NAME}")
-    endforeach()
-endif()
-
-# =============================================================================
-# CUSTOM TARGETS
-# =============================================================================
-
-# Custom target for cleaning build artifacts
-add_custom_target(clean-all
-    COMMAND ${CMAKE_COMMAND} -E remove_directory ${CMAKE_BINARY_DIR}
-    COMMENT "Removing entire build directory"
-)
-
-# Custom target for flashing (macOS)
-add_custom_target(flash
-    COMMAND ${CMAKE_COMMAND} -E echo "=== Flashing Instructions ==="
-    COMMAND ${CMAKE_COMMAND} -E echo "1. Hold BOOTSEL button while connecting Pico W to USB"
-    COMMAND ${CMAKE_COMMAND} -E echo "2. Release BOOTSEL button"
-    COMMAND ${CMAKE_COMMAND} -E echo "3. Copy the UF2 file:"
-    COMMAND ${CMAKE_COMMAND} -E echo "   cp ${CMAKE_BINARY_DIR}/${PROJECT_NAME}.uf2 /Volumes/RPI-RP2/"
-    COMMAND ${CMAKE_COMMAND} -E echo "   OR drag ${CMAKE_BINARY_DIR}/${PROJECT_NAME}.uf2 to RPI-RP2 drive"
-    COMMAND ${CMAKE_COMMAND} -E echo "============================"
-    DEPENDS ${PROJECT_NAME}
-    COMMENT "Instructions for flashing firmware to Pico W"
-)
-
-# Custom target for showing WiFi build info
-add_custom_target(wifi-info
-    COMMAND ${CMAKE_COMMAND} -E echo "=== WiFi Build Information ==="
-    COMMAND ${CMAKE_COMMAND} -E echo "Board: Raspberry Pi Pico W"
-    COMMAND ${CMAKE_COMMAND} -E echo "WiFi Chip: CYW43439"
-    COMMAND ${CMAKE_COMMAND} -E echo "WiFi Support: Enabled"
-    COMMAND ${CMAKE_COMMAND} -E echo "lwIP Stack: Enabled"
-    COMMAND ${CMAKE_COMMAND} -E echo "Background WiFi: Enabled"
-    COMMAND ${CMAKE_COMMAND} -E echo "=============================="
-    COMMENT "Display WiFi configuration information"
-)
-
-# =============================================================================
-# VALIDATION CHECKS
-# =============================================================================
-
-# Check if PICO_SDK_PATH is set
-if(NOT DEFINED ENV{PICO_SDK_PATH})
-    message(FATAL_ERROR "PICO_SDK_PATH environment variable is not set!")
-endif()
-
-# Verify Pico SDK path exists
-if(NOT EXISTS $ENV{PICO_SDK_PATH})
-    message(FATAL_ERROR "PICO_SDK_PATH does not exist: $ENV{PICO_SDK_PATH}")
-endif()
-
-# Check for required platform files
-set(REQUIRED_PLATFORM_FILES
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/board_config.h"
-)
-
-foreach(FILE ${REQUIRED_PLATFORM_FILES})
-    if(NOT EXISTS ${FILE})
-        message(WARNING "Required platform file missing: ${FILE}")
-    endif()
-endforeach()
-
-# Final status
-message(STATUS "CMake configuration completed successfully!")
-message(STATUS "Run 'make' or 'ninja' to build the project.")
+message(STATUS "Configured for Pico W with WiFi and WebSocket support")
+message(STATUS "Make sure websocket_server.cpp and wifi_manager.cpp exist in src/")
